@@ -33,7 +33,9 @@ online-iforest-reproduction/
 │   └── exp3_window/                  Phân tích kích thước cửa sổ
 ├── results/                          Bảng kết quả nhóm tự chạy
 ├── figures/                          Biểu đồ và hình nhóm tự tạo
-└── slides/                           Dàn ý, speaker notes và PPTX cuối
+└── slides/                           Nội dung trình bày
+    ├── README.md                     Hướng dẫn phần slide
+    └── outline.md                    Khung nội dung và deadline dự kiến
 ```
 
 Các thư mục code hiện mới có README mô tả; chưa triển khai thuật toán hoặc chạy thí nghiệm. `papers/figures/` chứa hình của tác giả; `figures/` dành cho hình nhóm tự tạo.
@@ -42,6 +44,7 @@ Các thư mục code hiện mới có README mô tả; chưa triển khai thuậ
 
 - [Paper gốc](papers/leveni24a-original.pdf) · [Bản dịch tiếng Việt](papers/online-isolation-forest-vi.md)
 - [Giải thích pipeline](docs/bat-dau-o-day.md) · [Yêu cầu đồ án](docs/yeu-cau-do-an.md)
+- [Outline slide và deadline dự kiến](slides/outline.md)
 - [Kế hoạch và phân việc trên Google Docs](https://docs.google.com/document/d/1BXscOQX-TQZYzKy0HOXoMgYcpc5V_lgIFqZvYFJ9c1g/edit?tab=t.eimsvhhx7ipi)
 
 Nguồn bài: [PMLR](https://proceedings.mlr.press/v235/leveni24a.html) · [Repo tác giả](https://github.com/ineveLoppiliF/Online-Isolation-Forest). Xem [ghi công tài liệu](papers/NOTICE.md).
