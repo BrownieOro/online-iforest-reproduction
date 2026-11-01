@@ -1,13 +1,27 @@
-"""Thi: learn/forget contract; implement against Phúc's tree structure."""
+"""Thi triển khai cập nhật trực tiếp Node/Tree trong tree.py; không tạo cây riêng."""
 from typing import Protocol
 import numpy as np
+from .tree import Tree
 
 
-class LearningTree(Protocol):
+class LearningTree(Tree, Protocol):
     def learn_batch(self, X: np.ndarray) -> None:
-        """Update mass/bounds and split for finite float X (n,d)."""
+        """Nhận X hữu hạn (n,d), cập nhật tại chỗ."""
         ...
 
     def forget_batch(self, X: np.ndarray) -> None:
-        """Remove previously learned expired points; merge as required."""
+        """Nhận các mẫu đã học bị hết hạn, cập nhật tại chỗ."""
         ...
+
+
+def learn_batch(tree: Tree, X: np.ndarray) -> None:
+    """Thi: cập nhật mass/miền bao, tách theo paper; dùng tree.rng.
+
+    Khi tách, lấy mẫu đều trong miền bao theo paper, không chia lại một kho mẫu thật.
+    """
+    raise NotImplementedError("Thi: học batch trên cấu trúc Node đã chốt")
+
+
+def forget_batch(tree: Tree, X: np.ndarray) -> None:
+    """Thi: giảm mass và gộp theo paper; FIFO do Forest chọn mẫu, không nằm ở đây."""
+    raise NotImplementedError("Thi: quên batch trên cấu trúc Node đã chốt")
