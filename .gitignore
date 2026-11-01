@@ -23,3 +23,8 @@ data/processed/
 results/raw/
 *.log
 ~$*
+
+# Build/install artifacts
+*.egg-info/
+build/
+dist/
