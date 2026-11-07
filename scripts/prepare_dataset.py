@@ -121,9 +121,9 @@ def main():
         summary = prepare_dataset(name, info)
         summaries.append(summary)
         print(
-            f"{name}: {summary['n_samples']} mẫu, "
-            f"{summary['n_features']} đặc trưng, "
-            f"{summary['n_anomaly']} bất thường "
+            f"{name}: {summary['n_samples']} samples, "
+            f"{summary['n_features']} features, "
+            f"{summary['n_anomaly']} anomalies "
             f"({summary['anomaly_ratio']:.2%})"
         )
 
