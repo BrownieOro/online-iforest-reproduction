@@ -46,11 +46,14 @@ def test_invalid_and_single_class(tmp_path, monkeypatch):
         load_data(path)
 
 
-def test_oif_is_explicit_scaffold():
-    forest = OnlineIsolationForest()
-    with pytest.raises(NotImplementedError):
-        forest.learn_batch(np.ones((2, 4)))
-    with pytest.raises(NotImplementedError):
-        forest.score_samples(np.ones((2, 4)))
-    with pytest.raises(NotImplementedError):
-        anomaly_scores(np.ones((2, 4)), 2048, 32)
+def test_oif_learns_scores_and_window():
+    forest = OnlineIsolationForest(n_trees=5, window_size=20, eta=2, seed=3)
+    X = np.random.default_rng(4).normal(size=(40, 3))
+    assert forest.learn_batch(X) is forest
+    scores = forest.score_samples(X[-4:])
+    assert scores.shape == (4,)
+    assert np.isfinite(scores).all()
+    assert len(forest._window) == 20
+    with pytest.raises(ValueError):
+        OnlineIsolationForest().score_samples(X[:1])
+    assert anomaly_scores(np.ones((2, 4)), 20, 2).shape == (4,)
