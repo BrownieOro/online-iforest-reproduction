@@ -43,7 +43,7 @@ def prepare_dataset(name, info):
 
     # Tải lần đầu; các lần chạy sau đọc bản gốc đã lưu.
     if not raw_path.exists():
-        print(f"Đang tải {info['filename']}...")
+        print(f"Downloading {info['filename']}...")
         with urlopen(url, timeout=120) as response:
             content = response.read()
 
@@ -132,7 +132,7 @@ def main():
         json.dumps(summaries, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
-    print("Hoàn tất chuẩn bị dữ liệu.")
+    print("Dataset preparation complete.")
 
 
 if __name__ == "__main__":
