@@ -65,3 +65,21 @@ class OnlineIsolationTree:
     def forget_batch(self, X: np.ndarray) -> None:
         from .learning import forget_batch
         forget_batch(self, X)
+
+    def find_leaf(self, x: np.ndarray):
+        node = self.root
+        while not node.is_leaf:
+            if (node.left is None
+                or node.right is None
+                or node.split_feature is None
+                or node.split_value is None):
+                raise ValueError("Nút trong có cấu trúc không hợp lệ")
+
+            q = node.split_feature
+            p = node.split_value
+
+            if x[q] < p:
+                node = node.left
+            else:
+                node = node.right
+        return node
