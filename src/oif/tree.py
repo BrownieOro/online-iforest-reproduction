@@ -47,7 +47,9 @@ class OnlineIsolationTree:
     Mỗi cây nhận seed riêng từ Forest.
     """
     def __init__(self, n_features: int, eta: float, max_depth: float, seed: int = 42):
-        if n_features < 1 or eta <= 0 or max_depth < 0:
+        if (not isinstance(n_features, (int, np.integer)) or isinstance(n_features, (bool, np.bool_))
+                or n_features < 1 or not np.isfinite(eta) or eta <= 0
+                or not np.isfinite(max_depth) or max_depth < 0):
             raise ValueError("n_features/eta phải dương; max_depth không âm")
         self.root = Node()
         self.n_features = n_features
@@ -59,7 +61,26 @@ class OnlineIsolationTree:
         X = _validate(X, self.n_features)
         if self.root.mass <= 0:
             raise ValueError("Cannot score a tree before learning")
-        return np.asarray([_path_length(self.root, x, self.eta) for x in X], dtype=float)
+        return np.asarray([_corrected_leaf_depth(self.find_leaf(x), self.eta) for x in X], dtype=float)
+
+    def find_leaf(self, x: np.ndarray) -> Node:
+        """Return the leaf reached by one finite feature vector without mutation."""
+        x = np.asarray(x, dtype=float)
+        if x.ndim != 1 or x.shape[0] != self.n_features or not np.isfinite(x).all():
+            raise ValueError(f"x must be finite with shape ({self.n_features},)")
+        node = self.root
+        while True:
+            has_left, has_right = node.left is not None, node.right is not None
+            has_feature, has_value = node.split_feature is not None, node.split_value is not None
+            if not (has_left or has_right or has_feature or has_value):
+                return node
+            if not (has_left and has_right and has_feature and has_value):
+                raise ValueError("Invalid tree cấu trúc: internal node must have split and two children")
+            if not isinstance(node.split_feature, (int, np.integer)) or not 0 <= node.split_feature < self.n_features:
+                raise ValueError("Invalid tree structure: split_feature is out of range")
+            if not np.isfinite(node.split_value):
+                raise ValueError("Invalid tree structure: split_value must be finite")
+            node = node.left if x[node.split_feature] < node.split_value else node.right
 
     def learn_batch(self, X: np.ndarray) -> None:
         from .learning import learn_batch
@@ -77,9 +98,6 @@ def _validate(X, n_features):
     return X
 
 
-def _path_length(node, x, eta):
-    if node.is_leaf or node.split_feature is None:
-        correction = 0.0 if node.mass <= eta else np.log(node.mass / eta) / np.log(4.0)
-        return float(node.depth + correction)
-    child = node.left if x[node.split_feature] < node.split_value else node.right
-    return _path_length(child, x, eta)
+def _corrected_leaf_depth(node, eta):
+    correction = 0.0 if node.mass <= eta else np.log(node.mass / eta) / np.log(4.0)
+    return float(node.depth + correction)

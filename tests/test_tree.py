@@ -86,3 +86,62 @@ def test_invalid_internal_node():
 
     with pytest.raises(ValueError, match="cấu trúc"):
         tree.find_leaf(np.array([7.0, 8.0]))
+
+
+@pytest.mark.parametrize("x", [[1.0], [1.0, 2.0, 3.0], [1.0, np.nan], [1.0, np.inf]])
+def test_find_leaf_rejects_invalid_sample(x):
+    with pytest.raises(ValueError, match="finite with shape"):
+        make_tree().find_leaf(np.asarray(x))
+
+
+@pytest.mark.parametrize(
+    "x, expected",
+    [
+        ([3.0, 20.0], 1 + np.log(3 / 2) / np.log(4)),
+        ([7.0, 8.0], 2.0),
+        ([7.0, 12.0], 2.0),
+        ([5.0, 10.0], 2.0),
+    ],
+)
+def test_path_lengths_returns_corrected_depths_without_mutation(x, expected):
+    tree = make_tree()
+    root, left, right = tree.root, tree.root.left, tree.root.right
+
+    depths = tree.path_lengths(np.asarray([x], dtype=float))
+
+    assert depths.shape == (1,)
+    assert depths[0] == pytest.approx(expected)
+    assert tree.root is root and root.left is left and root.right is right
+
+
+def test_path_lengths_supports_multiple_and_empty_batches():
+    tree = make_tree()
+    depths = tree.path_lengths(np.asarray([[3, 20], [7, 8], [5, 10]], dtype=float))
+    assert depths.shape == (3,)
+    assert tree.path_lengths(np.empty((0, 2))).shape == (0,)
+
+
+@pytest.mark.parametrize("X", [np.ones(2), np.ones((2, 3)), np.asarray([[1, np.nan]])])
+def test_path_lengths_rejects_invalid_batch(X):
+    with pytest.raises(ValueError, match="finite with shape"):
+        make_tree().path_lengths(X)
+
+
+def test_path_lengths_rejects_unlearned_tree():
+    tree = OnlineIsolationTree(n_features=2, eta=2, max_depth=4)
+    with pytest.raises(ValueError, match="before learning"):
+        tree.path_lengths(np.ones((1, 2)))
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"n_features": 0, "eta": 2, "max_depth": 4},
+        {"n_features": 2, "eta": 0, "max_depth": 4},
+        {"n_features": 2, "eta": 2, "max_depth": -1},
+        {"n_features": 2, "eta": 2, "max_depth": np.inf},
+    ],
+)
+def test_constructor_rejects_invalid_parameters(kwargs):
+    with pytest.raises(ValueError):
+        OnlineIsolationTree(**kwargs)
