@@ -14,10 +14,10 @@ def test_tree_state_is_independent_and_seeded():
     assert b.root.lower is None and b.root.upper is None
 
 
-def test_shared_tree_delegates_updates_and_remains_scaffold():
+def test_shared_tree_delegates_updates():
     tree = OnlineIsolationTree(4, 32, 6)
-    for method in (tree.learn_batch, tree.forget_batch, tree.path_lengths):
-        with pytest.raises(NotImplementedError):
-            method(np.ones((2, 4)))
+    tree.learn_batch(np.ones((2, 4)))
+    assert tree.path_lengths(np.ones((2, 4))).shape == (2,)
+    tree.forget_batch(np.ones((1, 4)))
     parent = Node(left=Node(depth=1), right=Node(depth=1), split_feature=0, split_value=0.5)
     assert not parent.is_leaf

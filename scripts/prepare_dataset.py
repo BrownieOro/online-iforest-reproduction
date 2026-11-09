@@ -43,7 +43,7 @@ def prepare_dataset(name, info):
 
     # Tải lần đầu; các lần chạy sau đọc bản gốc đã lưu.
     if not raw_path.exists():
-        print(f"Đang tải {info['filename']}...")
+        print(f"Downloading {info['filename']}...")
         with urlopen(url, timeout=120) as response:
             content = response.read()
 
@@ -121,9 +121,9 @@ def main():
         summary = prepare_dataset(name, info)
         summaries.append(summary)
         print(
-            f"{name}: {summary['n_samples']} mẫu, "
-            f"{summary['n_features']} đặc trưng, "
-            f"{summary['n_anomaly']} bất thường "
+            f"{name}: {summary['n_samples']} samples, "
+            f"{summary['n_features']} features, "
+            f"{summary['n_anomaly']} anomalies "
             f"({summary['anomaly_ratio']:.2%})"
         )
 
@@ -132,7 +132,7 @@ def main():
         json.dumps(summaries, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
-    print("Hoàn tất chuẩn bị dữ liệu.")
+    print("Dataset preparation complete.")
 
 
 if __name__ == "__main__":

@@ -46,7 +46,7 @@ class OnlineIsolationTree:
     Forest truyền max_depth sau khi chốt công thức; không ngầm chọn công thức ở đây.
     Mỗi cây nhận seed riêng từ Forest.
     """
-    def __init__(self, n_features: int, eta: float, max_depth: int, seed: int = 42):
+    def __init__(self, n_features: int, eta: float, max_depth: float, seed: int = 42):
         if n_features < 1 or eta <= 0 or max_depth < 0:
             raise ValueError("n_features/eta phải dương; max_depth không âm")
         self.root = Node()
@@ -56,7 +56,10 @@ class OnlineIsolationTree:
         self.rng = np.random.default_rng(seed)
 
     def path_lengths(self, X: np.ndarray) -> np.ndarray:
-        raise NotImplementedError("Phúc: duyệt cây và hiệu chỉnh độ sâu lá")
+        X = _validate(X, self.n_features)
+        if self.root.mass <= 0:
+            raise ValueError("Cannot score a tree before learning")
+        return np.asarray([_path_length(self.root, x, self.eta) for x in X], dtype=float)
 
     def learn_batch(self, X: np.ndarray) -> None:
         from .learning import learn_batch
@@ -66,20 +69,17 @@ class OnlineIsolationTree:
         from .learning import forget_batch
         forget_batch(self, X)
 
-    def find_leaf(self, x: np.ndarray):
-        node = self.root
-        while not node.is_leaf:
-            if (node.left is None
-                or node.right is None
-                or node.split_feature is None
-                or node.split_value is None):
-                raise ValueError("Nút trong có cấu trúc không hợp lệ")
 
-            q = node.split_feature
-            p = node.split_value
+def _validate(X, n_features):
+    X = np.asarray(X, dtype=float)
+    if X.ndim != 2 or X.shape[1] != n_features or not np.isfinite(X).all():
+        raise ValueError(f"X must be finite with shape (n, {n_features})")
+    return X
 
-            if x[q] < p:
-                node = node.left
-            else:
-                node = node.right
-        return node
+
+def _path_length(node, x, eta):
+    if node.is_leaf or node.split_feature is None:
+        correction = 0.0 if node.mass <= eta else np.log(node.mass / eta) / np.log(4.0)
+        return float(node.depth + correction)
+    child = node.left if x[node.split_feature] < node.split_value else node.right
+    return _path_length(child, x, eta)

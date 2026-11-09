@@ -19,3 +19,13 @@ Khai báo hỗ trợ Python >=3.9; chưa chạy trực tiếp trên Python 3.9 h
 | verified-csv-42 | 140/60 | 1.0000 | 1.0000 | 0.8571 | 1.0000 | 0.9231 | 0.1493 | 0.0183 |
 
 Đây là dữ liệu synthetic dễ phân biệt, chỉ xác nhận pipeline hoạt động. Không phải kết quả dataset paper/OIF. File local nằm trong results/raw (gitignored).
+
+## Kiểm tra W&B bằng SDK thật
+
+- W&B 0.31.0, chạy bằng Python trong `.venv`.
+- Đã chạy baseline ở chế độ offline, run ID `gzpddfj5`.
+- Đã ghi config, 9 metrics và artifact chứa config.json, metrics.json, predictions.csv.
+- Kết quả local: `results/raw/wandb-offline-verified-01/`.
+- Log W&B: `wandb/offline-run-20261101_173226-gzpddfj5/`.
+- Chưa đồng bộ online vì máy chưa có xác thực W&B.
+- `.env` local đã đặt WANDB_MODE=offline; không đưa vào Git.
