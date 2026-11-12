@@ -18,5 +18,7 @@ def log_run(config, metrics, output):
         artifact = wandb.Artifact(f"baseline-{run.id}", type="evaluation")
         for name in ("config.json", "metrics.json", "predictions.csv"):
             artifact.add_file(str(output / name))
+        for figure in output.glob("*.png"):
+            artifact.add_file(str(figure))
         run.log_artifact(artifact)
         return run.url if mode == "online" else None
