@@ -11,11 +11,13 @@ def log_run(config, metrics, output):
     if mode not in {"offline", "online"}:
         raise ValueError("WANDB_MODE must be disabled, offline or online")
     import wandb
+    experiment = str(config.get("experiment", "baseline"))
     with wandb.init(project=os.getenv("WANDB_PROJECT", "intro-ml-oif"),
                     entity=os.getenv("WANDB_ENTITY") or None, mode=mode,
-                    job_type="baseline", config=config) as run:
+                    job_type=experiment, tags=config.get("tags", []),
+                    config=config) as run:
         run.log({k: v for k, v in metrics.items() if isinstance(v, (int, float))})
-        artifact = wandb.Artifact(f"baseline-{run.id}", type="evaluation")
+        artifact = wandb.Artifact(f"{experiment}-{run.id}", type="evaluation")
         for name in ("config.json", "metrics.json", "predictions.csv"):
             artifact.add_file(str(output / name))
         run.log_artifact(artifact)
