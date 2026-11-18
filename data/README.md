@@ -35,6 +35,62 @@ data/
 
 Các thư mục `raw/` và `processed/` đã được Git bỏ qua. Cần cài các phụ thuộc của dự án (bao gồm NumPy và pandas) trước khi chạy script.
 
-## Dữ liệu cho thí nghiệm khác
+## Chuẩn bị dữ liệu không dừng INSECTS
 
-Script hiện chỉ chuẩn bị hai bộ dữ liệu stationary nêu trên. Với INSECTS hoặc dữ liệu dùng cho thí nghiệm drift, cần giữ đúng thứ tự thời gian và ghi rõ nguồn, phiên bản, nhãn/lớp được chọn cùng cách xử lý trước khi bổ sung pipeline tương ứng.
+Từ thư mục gốc repository, chạy:
+
+```bash
+python scripts/prepare_insects.py
+```
+
+Script chỉ dùng thư viện chuẩn và NumPy (không cần pandas).
+
+### Nguồn và phiên bản
+
+- Tệp: `insects_ae-aegypti-female_cx-quinq-male_ae-albopictus-male.csv` trong `datasets/non-stationary/kqt/` của [repository tác giả](https://github.com/ineveLoppiliF/Online-Isolation-Forest/tree/e528c86b77219791d026d732f618efb0c7bde3c1/datasets/non-stationary/kqt), cố định commit `e528c86b77219791d026d732f618efb0c7bde3c1`, tải qua `media.githubusercontent.com` (tệp lưu bằng Git LFS).
+- Kích thước 64.138.813 byte; SHA-256 `c38d9b89fb6b133db5b9fe4249621b056f18f177f5832cc8b1d66a840e4eb5d3`. Script kiểm tra checksum ở lần tải đầu và mỗi lần chạy lại; từ chối Git LFS pointer.
+- Dữ liệu gốc là INSECTS của Souza và cộng sự (2020). Bài báo (Mục 5.1) và tệp nguồn **không ghi biến thể** (abrupt/incremental/gradual, balanced/imbalanced) đã dùng; tệp cũng không còn tên lớp, nhiệt độ hay timestamp nên không xác định được biến thể từ dữ liệu. TODO: đối chiếu với bộ dữ liệu gốc của Souza và cộng sự nếu nhóm cần ghi rõ.
+
+### Gán nhãn
+
+Tệp nguồn đã được tác giả lọc sẵn ba lớp và chỉ còn cột `y` (0/1):
+
+| `label` | Lớp (theo tên tệp và Mục 5.1) |
+|---|---|
+| 0 (bình thường) | `ae-aegypti-female`, `cx-quinq-male` |
+| 1 (bất thường) | `ae-albopictus-male` |
+
+Vì không còn tên lớp, script không thể tự lọc theo tên; việc lọc được kiểm chứng gián tiếp qua số mẫu và tỷ lệ bất thường so với bài báo (bảng dưới).
+
+### Xử lý
+
+- Kiểm tra cột đúng thứ tự `id,x0,...,x32,y` và `id` đúng bằng `0..n-1` (xác nhận thứ tự dòng gốc).
+- Bỏ `id`, đổi `y` thành `label`; giữ nguyên giá trị đặc trưng và thứ tự dòng (thứ tự thời gian).
+- Từ chối dữ liệu thiếu/vô hạn; yêu cầu nhãn có đúng hai giá trị `0` và `1`.
+- Không chuẩn hóa, xáo trộn, chia tập hay loại bỏ dòng trùng. Theo C5, không chia tập ngẫu nhiên cho INSECTS; đánh giá tuần tự theo thứ tự này.
+- Script dừng với lỗi nếu số mẫu, số đặc trưng hoặc tỷ lệ bất thường lệch Mục 5.1.
+
+### Thống kê kiểm chứng
+
+| Đại lượng | Bài báo (Mục 5.1) | Thực tế |
+|---|---|---|
+| Số mẫu `n` | 212514 | 212514 |
+| Số đặc trưng `d` | 33 | 33 |
+| Bình thường / bất thường | — | 200813 / 11701 |
+| Tỷ lệ bất thường | 5.50% | 5.506% (bài báo nhiều khả năng cắt bớt chữ số; script chấp nhận sai lệch < 0.01 điểm %) |
+| Giá trị thiếu / dòng trùng (bỏ `id`) | — | 0 / 0 |
+
+### Mốc thay đổi phân phối
+
+Bài báo nêu INSECTS có 5 thay đổi thực do nhiệt độ, nhưng không liệt kê chỉ số dòng; tệp nguồn không có cột nhiệt độ/thời gian để suy ra. TODO: xác định 5 mốc từ nguồn đối chiếu được (bộ dữ liệu gốc hoặc code tác giả) và ghi theo hệ chỉ số `row_index` sau khi lọc lớp (C5), trước khi dùng cho thí nghiệm drift.
+
+### Kết quả được tạo
+
+```text
+data/
+├── raw/
+│   └── insects_ae-aegypti-female_cx-quinq-male_ae-albopictus-male.csv
+└── processed/
+    ├── insects.csv            # x0..x32, label
+    └── insects-summary.json   # nguồn, checksum, thống kê, ánh xạ nhãn, các bước xử lý
+```
