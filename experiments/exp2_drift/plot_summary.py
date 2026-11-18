@@ -198,7 +198,13 @@ def report(rows, all_runs):
         "huấn luyện lại trên 2048 mẫu gần nhất sau mỗi 2048 mẫu mới, giống ý tưởng cửa sổ rời của "
         "`pysad.IForestASD` mà tác giả dùng nhưng không phải cùng mã.")
     add("- Chỉ số: ROC-AUC, AP trên toàn luồng và từng đoạn; ROC-AUC trên cửa sổ trượt 5.000 mẫu, "
-        "bước 1.000 (208 cửa sổ); thời gian học và chấm điểm (giây, CPU laptop, 1 luồng).\n")
+        "bước 1.000 (208 cửa sổ); thời gian học và chấm điểm (giây, CPU laptop, 1 luồng).")
+    add("- Tiền xử lý: không có. Dùng nguyên CSV đã chuẩn bị, không chuẩn hóa/scaling, không điền "
+        "khuyết, không xáo trộn, không bỏ dòng trùng; lượt d = 10 chỉ lấy 10 cột đầu `x0..x9`.")
+    add("- Đo thời gian: `time.perf_counter` (giây, thời gian thực), đo tách riêng phần chấm điểm "
+        "và phần học của từng lô rồi cộng dồn; không tính thời gian đọc dữ liệu và ghi tệp. Các "
+        "lần chạy hiện có được tạo trước khi `config.json` có trường `preprocessing` và `timing`; "
+        "hai dòng này ghi lại đúng cách mà `run.py` ở commit của chúng đã làm.\n")
 
     add(f"## Kết quả theo đoạn (d = 33, trung vị [Q1; Q3] qua {n_seeds} seed)\n")
     add("| Đoạn | `row_index` | Số mẫu | Bất thường | OIF ROC-AUC | asdIFOR ROC-AUC | OIF AP | "

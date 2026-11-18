@@ -11,6 +11,8 @@ Các lần chạy có `git_worktree_dirty = true` (d = 10: asdifor seed 0; d = 1
 - OIF: 32 cây, `window_size = 2048`, `eta = 32`, seed rừng `seed * 32` để các seed không dùng chung cây (điểm F4 của `forest.py`).
 - asdIFOR (nhóm tự dựng): `sklearn.ensemble.IsolationForest` 32 cây, `max_samples = 256`, huấn luyện lại trên 2048 mẫu gần nhất sau mỗi 2048 mẫu mới, giống ý tưởng cửa sổ rời của `pysad.IForestASD` mà tác giả dùng nhưng không phải cùng mã.
 - Chỉ số: ROC-AUC, AP trên toàn luồng và từng đoạn; ROC-AUC trên cửa sổ trượt 5.000 mẫu, bước 1.000 (208 cửa sổ); thời gian học và chấm điểm (giây, CPU laptop, 1 luồng).
+- Tiền xử lý: không có. Dùng nguyên CSV đã chuẩn bị, không chuẩn hóa/scaling, không điền khuyết, không xáo trộn, không bỏ dòng trùng; lượt d = 10 chỉ lấy 10 cột đầu `x0..x9`.
+- Đo thời gian: `time.perf_counter` (giây, thời gian thực), đo tách riêng phần chấm điểm và phần học của từng lô rồi cộng dồn; không tính thời gian đọc dữ liệu và ghi tệp. Các lần chạy hiện có được tạo trước khi `config.json` có trường `preprocessing` và `timing`; hai dòng này ghi lại đúng cách mà `run.py` ở commit của chúng đã làm.
 
 ## Kết quả theo đoạn (d = 33, trung vị [Q1; Q3] qua 5 seed)
 

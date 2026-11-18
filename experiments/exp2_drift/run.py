@@ -193,6 +193,10 @@ def run_once(name, seed, X, y, args, output, data_sha256):
         "change_points": list(CHANGE_POINTS),
         "protocol": ("original row order, no shuffle/split; batches of batch_size; score each batch "
                      "before learning it; first batch is warm-up only and not evaluated"),
+        "preprocessing": ("none: prepared CSV used as is (no scaling, imputation, shuffling or "
+                          f"deduplication); first {int(X.shape[1])} of 33 features"),
+        "timing": ("time.perf_counter wall-clock seconds, measured separately for scoring and "
+                   "learning of each batch; data loading and file writing excluded"),
         "model": name, "seed": seed, "params": params, "batch_size": bs,
         "eval_window": args.eval_window, "eval_step": args.eval_step,
         "python": platform.python_version(), "numpy": np.__version__,

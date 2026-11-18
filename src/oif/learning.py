@@ -5,6 +5,8 @@ from .tree import Tree, Node, _validate
 
 
 class LearningTree(Tree, Protocol):
+    """Giao diện cây học trực tuyến: Tree (C2) cộng học/quên cập nhật tại chỗ (C3)."""
+
     def learn_batch(self, X: np.ndarray) -> None:
         """Nhận X hữu hạn (n,d), cập nhật tại chỗ."""
         ...
