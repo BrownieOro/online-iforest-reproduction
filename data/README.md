@@ -82,7 +82,20 @@ Vì không còn tên lớp, script không thể tự lọc theo tên; việc l�
 
 ### Mốc thay đổi phân phối
 
-Bài báo nêu INSECTS có 5 thay đổi thực do nhiệt độ, nhưng không liệt kê chỉ số dòng; tệp nguồn không có cột nhiệt độ/thời gian để suy ra. TODO: xác định 5 mốc từ nguồn đối chiếu được (bộ dữ liệu gốc hoặc code tác giả) và ghi theo hệ chỉ số `row_index` sau khi lọc lớp (C5), trước khi dùng cho thí nghiệm drift.
+Bài báo nêu INSECTS có 5 thay đổi thực do nhiệt độ (vạch đỏ ở Hình 7) nhưng không liệt kê chỉ số dòng. Năm mốc lấy từ biến `change_points` trong [`experiments/scripts/plot/plot_results_sliding_window.py`](https://github.com/ineveLoppiliF/Online-Isolation-Forest/blob/e528c86b77219791d026d732f618efb0c7bde3c1/experiments/scripts/plot/plot_results_sliding_window.py) của tác giả (cùng commit; phần tử cuối `212514` là cuối luồng, không phải mốc). Script đó vẽ mốc trên trục "# samples" của chính tệp này, nên chỉ số trùng với `row_index` (đếm từ 0, sau khi lọc lớp, C5): mỗi mốc là dòng đầu tiên của đoạn mới.
+
+| Đoạn | `row_index` | Số mẫu | Tỷ lệ bất thường |
+|---|---|---:|---:|
+| 1 | 0 – 51254 | 51255 | 4.67% |
+| 2 | 51255 – 74380 | 23126 | 3.71% |
+| 3 | 74381 – 100943 | 26563 | 8.62% |
+| 4 | 100944 – 142290 | 41347 | 2.19% |
+| 5 | 142291 – 152206 | 9916 | 30.57% |
+| 6 | 152207 – 212513 | 60307 | 3.69% |
+
+Kiểm tra độc lập trên dữ liệu: chuẩn hóa từng đặc trưng, so trung bình 3000 dòng trước và sau mỗi mốc. Khoảng cách Euclid tại 5 mốc là 1.78, 3.08, 1.78, 2.62, 1.38, trong khi trung vị tại 200 điểm ngẫu nhiên là 0.17. Đây chỉ là kiểm tra tính hợp lý, không thay cho nguồn của tác giả.
+
+Lưu ý: script thí nghiệm của tác giả (`experiments/scripts/test/test_kqt_datasets.py`) chỉ dùng 10 đặc trưng đầu (`data[:, :10]`), khác với `d = 33` ở Mục 5.1. Tệp này vẫn giữ đủ 33 đặc trưng; số đặc trưng dùng khi chạy do script thí nghiệm quyết định và ghi vào `config.json`.
 
 ### Kết quả được tạo
 
