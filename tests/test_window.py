@@ -56,8 +56,6 @@ def test_max_depth_matches_window_when_full():
         assert tree.max_depth == pytest.approx(expected)
 
 
-@pytest.mark.xfail(strict=True, reason="F1: forest.py tính delta từ len(window) trước khi thêm mẫu "
-                                       "đang học; chờ nhóm thống nhất với Trân")
 def test_max_depth_matches_window_during_warmup():
     X = np.random.default_rng(3).normal(size=(40, 2))
     forest = OnlineIsolationForest(n_trees=2, window_size=64, eta=4, seed=4)
