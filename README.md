@@ -127,8 +127,8 @@ Lỗi W&B làm lệnh báo lỗi, nhưng file local vẫn được giữ. Chưa 
 
 | Thí nghiệm | Script | W&B | Kết quả / trạng thái |
 |---|---|---|---|
-| INSECTS, OIF, 10 cột, seed 0 | `experiments/exp2_drift/run.py` | [run dqkrvfhm](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/dqkrvfhm) | ROC-AUC 0,735126; AP 0,122566; score-then-learn |
+| INSECTS, OIF và baseline, 10 cột, 5 seed | `experiments/exp2_drift/run.py` | [10 run](docs/wandb-runs.md) | ROC-AUC trung vị 0,728223 và 0,785836; score-then-learn |
 | Annthyroid, sklearn offline | `scripts/run_baseline.py` | [run z86dyqji](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/z86dyqji) | ROC-AUC 0,821244; holdout ngẫu nhiên |
 | Mammography, sklearn offline | `scripts/run_baseline.py` | [run judihdbh](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/judihdbh) | ROC-AUC 0,862427; holdout ngẫu nhiên |
 
-Các baseline offline không dùng thay cho kết quả streaming của Phúc. Xem [danh mục W&B](docs/wandb-runs.md), [phân tích INSECTS](results/drift-analysis-10.md) và [slide Trân](slides/phase2-tran.md). Nhánh làm việc tích hợp dựa trên `feat/thi-learning-tests`: `feat/tran-insects`.
+Các baseline offline không dùng thay cho kết quả streaming của Phúc. Xem [danh mục W&B](docs/wandb-runs.md), [phân tích INSECTS](results/drift-fixed-10.md) và [slide Trân](slides/phase2-tran.md). Nhánh làm việc tích hợp dựa trên `feat/thi-learning-tests`: `feat/tran-insects`.

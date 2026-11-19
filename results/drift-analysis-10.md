@@ -1,5 +1,7 @@
 # INSECTS 10 đặc trưng — phân tích sơ bộ seed 0
 
+**Cảnh báo:** Kết quả dưới đây chạy trước commit sửa giới hạn độ sâu khi khởi động `6ac25e3`; đang chạy lại và không dùng làm kết quả cuối.
+
 OIF seed 0 đã chạy đủ 212.514 dòng; 100 dòng đầu khởi động, 212.414 dòng còn lại đánh giá theo lô, chấm trước học. ROC-AUC = 0,735126; AP = 0,122566. [Run W&B và artifact](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/dqkrvfhm). Cấu hình: 32 cây, cửa sổ học 2.048, η = 32, 10 cột đầu. Các seed khác đang chạy; chưa suy rộng từ một seed.
 
 So sánh định tính với Hình 7 của [paper](https://proceedings.mlr.press/v235/leveni24a.html): đường chất lượng thay đổi theo thời gian và có sụt giảm sau một số mốc, nhưng không đối chiếu trực tiếp giá trị số vì nhóm chấm trước học, tác giả học trước chấm; script tác giả còn dùng 30 lần, các cách lấy cửa sổ đánh giá và baseline khác. Không khẳng định tái lập chính xác.
@@ -17,3 +19,9 @@ Với mỗi mốc, lấy ROC-AUC của cửa sổ 5.000 mẫu hoàn chỉnh cu�
 | 152.207 | 0,731 | 0,801 | 5.893 mẫu |
 
 [Phân bố điểm trước và sau mốc đầu](../figures/drift-score-distribution-10.png) hiển thị riêng theo nhãn, mỗi đường chuẩn hóa thành mật độ; không phản ánh tỷ lệ lớp. Dữ liệu từ đúng run seed 0; không kết luận nguyên nhân chỉ từ biểu đồ. Số liệu, recovery và hình sẽ cập nhật khi các seed khác hoàn thành.
+
+## Điểm cần đối chiếu về giới hạn độ sâu
+
+Bảng 3 của paper [1] ghi δ = log₂(ω/η), bằng 6 với ω=2048 và η=32. Trong khi đó `OnlineITree.get_random_path_length` trong [mã tác giả](https://github.com/ineveLoppiliF/Online-Isolation-Forest/blob/e528c86b77219791d026d732f618efb0c7bde3c1/OnlineIForest/onlineitree.py) dùng log(n/η)/log(2×branching_factor), tức log₄ và bằng 3 khi cây nhị phân và cửa sổ đầy. Code nhóm hiện theo cách của tác giả. Đây là khác biệt giữa paper và code, không tự suy ra nguyên nhân hoặc khẳng định paper sai; cần kiểm tra với tác giả nếu cần khẳng định ý định.
+
+[1] F. Leveni et al., “Online Isolation Forest,” ICML, 2024, Table 3. https://proceedings.mlr.press/v235/leveni24a.html
