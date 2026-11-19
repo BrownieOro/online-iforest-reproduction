@@ -121,3 +121,14 @@ Lỗi W&B làm lệnh báo lỗi, nhưng file local vẫn được giữ. Chưa 
 | Chạy thử dữ liệu mô phỏng | `scripts/run_baseline.py` | dữ liệu mô phỏng → JSON và CSV dự đoán | Có thể ghi nhật ký baseline |
 | Baseline trên bộ dữ liệu | cùng script + `--data --label-column` | CSV → chỉ số đánh giá và dự đoán | Cấu hình, chỉ số, tệp kết quả |
 | Luồng dữ liệu ổn định | `experiments/exp1_stationary/run.py` | Annthyroid và Mammography → ROC-AUC và thời gian theo luồng | Một lần chạy cho mỗi bộ dữ liệu và seed |
+
+
+## Kết quả có thể truy vết (19/11)
+
+| Thí nghiệm | Script | W&B | Kết quả / trạng thái |
+|---|---|---|---|
+| INSECTS, OIF và baseline, 10 cột, 5 seed | `experiments/exp2_drift/run.py` | [10 run](docs/wandb-runs.md) | ROC-AUC trung vị 0,728223 và 0,785836; score-then-learn |
+| Annthyroid, sklearn offline | `scripts/run_baseline.py` | [run z86dyqji](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/z86dyqji) | ROC-AUC 0,821244; holdout ngẫu nhiên |
+| Mammography, sklearn offline | `scripts/run_baseline.py` | [run judihdbh](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/judihdbh) | ROC-AUC 0,862427; holdout ngẫu nhiên |
+
+Các baseline offline không dùng thay cho kết quả streaming của Phúc. Xem [danh mục W&B](docs/wandb-runs.md), [phân tích INSECTS](results/drift-fixed-10.md) và [slide Trân](slides/phase2-tran.md). Nhánh làm việc tích hợp dựa trên `feat/thi-learning-tests`: `feat/tran-insects`.

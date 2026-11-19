@@ -1,4 +1,4 @@
-"""Trân: public forest scaffold; intentionally fails until OIF is implemented."""
+"""Online forest with a shared FIFO window and independently seeded trees."""
 import numpy as np
 from collections import deque
 from .tree import OnlineIsolationTree, _validate
@@ -27,9 +27,9 @@ class OnlineIsolationForest:
             self._trees = [OnlineIsolationTree(self.n_features, self.eta, self._depth_limit(), self.seed + i) for i in range(self.n_trees)]
         X = _validate(X, self.n_features)
         for x in X:
-            self._set_depth_limit()
+            limit = self._depth_limit(min(len(self._window) + 1, self.window_size))
             for tree in self._trees:
-                tree.max_depth = self._depth_limit()
+                tree.max_depth = limit
                 tree.learn_batch(x[None, :])
             self._window.append(x.copy())
             if len(self._window) > self.window_size:
@@ -46,8 +46,8 @@ class OnlineIsolationForest:
         depths = np.vstack([tree.path_lengths(X) for tree in self._trees])
         return anomaly_scores(depths, len(self._window), self.eta)
 
-    def _depth_limit(self):
-        n = len(self._window)
+    def _depth_limit(self, n=None):
+        n = len(self._window) if n is None else n
         return 0.0 if n <= self.eta else np.log(n / self.eta) / np.log(4.0)
 
     def _set_depth_limit(self):
