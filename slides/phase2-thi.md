@@ -3,11 +3,13 @@
 Nội dung cho các mục 5.2, 6.2 và 7.2 (6 slide), để ghép vào deck chung. Mỗi slide gồm: nội dung
 trình chiếu, hình tự vẽ, công thức (nếu có), speaker notes (dưới 500 từ) và nguồn IEEE đặt ở cuối
 slide. Mọi số liệu lấy từ [`results/drift.md`](../results/drift.md),
-[`results/drift-by-segment.csv`](../results/drift-by-segment.csv) và
-[`data/README.md`](../data/README.md). Ví dụ số ở slide 6.2b là kết quả chạy thật của
-`src/oif/learning.py`, không phải số tự đặt.
+[`results/drift-by-segment.csv`](../results/drift-by-segment.csv),
+[`results/drift-fixed-10.md`](../results/drift-fixed-10.md),
+[`docs/wandb-runs.md`](../docs/wandb-runs.md) và [`data/README.md`](../data/README.md). Số d = 33
+là lượt chạy lại 5 seed tại commit `fb35956` (đã sửa F1); số d = 10 là 5 seed của Trân sau sửa F1.
+Ví dụ số ở slide 6.2b là kết quả chạy thật của `src/oif/learning.py`, không phải số tự đặt.
 
-Còn thiếu: link W&B của các lần chạy drift (chưa tải lên; xem cuối `results/drift.md`).
+Còn thiếu: link W&B của lượt d = 33 (chưa tải lên; lệnh tải ở cuối `results/drift.md`).
 
 ---
 
@@ -150,7 +152,7 @@ seed 2. Năm mẫu đến lần lượt: `p1=(1,1)`, `p2=(3,2)`, `p3=(2,5)`, `p4
 Sau bước 5, gốc là lá, mass 3, hộp `[1,56; 3,50]×[1,22; 3,91]`, bằng hợp hai hộp con.
 
 Kiểm thử: `tests/test_learning.py` (15 ca) và `tests/test_window.py` (8 ca); cả bộ test của repo:
-**54 passed, 1 xfailed**.
+**55 passed**.
 
 **Hình minh họa (tự vẽ)**
 
@@ -198,9 +200,6 @@ Bộ test cũng kiểm tra:
 - mass gốc bằng độ dài cửa sổ;
 - chấm điểm không làm thay đổi trạng thái rừng.
 
-Ca xfail duy nhất ghi lại điểm F1 ở `forest.py`: `δ` được tính từ độ dài cửa sổ trước khi thêm mẫu
-đang học. Ca này đã được báo cho người phụ trách để thống nhất, nhóm không che lỗi.
-
 [1] F. Leveni, G. Weigert Cassales, B. Pfahringer, A. Bifet, and G. Boracchi, "Online Isolation
 Forest," in *Proc. 41st Int. Conf. Machine Learning*, PMLR, vol. 235, pp. 27288–27298, 2024.
 
@@ -219,15 +218,15 @@ Forest," in *Proc. 41st Int. Conf. Machine Learning*, PMLR, vol. 235, pp. 27288�
 
 | Đoạn | OIF ROC-AUC | asdIFOR ROC-AUC | OIF AP | asdIFOR AP |
 |---|---:|---:|---:|---:|
-| Toàn luồng | 0,702 [0,698; 0,733] | 0,718 [0,711; 0,718] | 0,097 | 0,097 |
-| 1 | 0,801 [0,793; 0,802] | 0,794 [0,794; 0,797] | 0,123 | 0,110 |
-| 2 | 0,593 [0,576; 0,633] | 0,600 [0,599; 0,604] | 0,044 | 0,045 |
-| 3 | 0,729 [0,725; 0,762] | 0,744 [0,720; 0,755] | 0,176 | 0,169 |
-| 4 | 0,654 [0,648; 0,681] | 0,658 [0,654; 0,659] | 0,031 | 0,032 |
-| 5 | 0,691 [0,652; 0,726] | 0,664 [0,660; 0,680] | 0,420 | 0,391 |
-| 6 | 0,762 [0,761; 0,776] | 0,754 [0,744; 0,756] | 0,079 | 0,076 |
+| Toàn luồng | 0,706 [0,696; 0,744] | 0,718 [0,711; 0,718] | 0,104 | 0,097 |
+| 1 | 0,774 [0,742; 0,813] | 0,794 [0,794; 0,797] | 0,116 | 0,110 |
+| 2 | 0,607 [0,586; 0,608] | 0,600 [0,599; 0,604] | 0,046 | 0,045 |
+| 3 | 0,741 [0,724; 0,789] | 0,744 [0,720; 0,755] | 0,198 | 0,169 |
+| 4 | 0,659 [0,633; 0,682] | 0,658 [0,654; 0,659] | 0,034 | 0,032 |
+| 5 | 0,665 [0,614; 0,716] | 0,664 [0,660; 0,680] | 0,420 | 0,391 |
+| 6 | 0,760 [0,749; 0,791] | 0,754 [0,744; 0,756] | 0,080 | 0,076 |
 
-W&B: TODO, chèn link sau khi tải các lần chạy lên.
+W&B: lượt d = 33 chưa tải lên (TODO); lượt d = 10 có link ở slide 7.2c.
 
 **Hình minh họa (tự vẽ)**
 
@@ -239,16 +238,18 @@ Dùng bảng trên. Có thể thêm sơ đồ một lô: "lô t đến → chấ
 Giao thức được chọn để điểm của mỗi mẫu không dùng thông tin của chính nó hay của tương lai. Mỗi lô
 100 mẫu được chấm bằng mô hình đã học tới lô trước, rồi mới đưa vào học. Nhóm đã kiểm chứng bằng cách
 dựng lại mô hình từ đầu và chạy lại 5.000 mẫu đầu: điểm tính lại trùng khớp từng bit với tệp kết quả,
-còn thứ tự học-trước-chấm-sau cho điểm khác. Nhãn chỉ dùng để tính chỉ số.
+còn thứ tự học-trước-chấm-sau cho điểm khác. Nhãn chỉ dùng để tính chỉ số. Lượt d = 33 trong bảng
+được chạy lại trên code đã sửa F1 (commit `fb35956`); ROC-AUC của cả 10 lần chạy trùng với một
+lượt chạy độc lập khác của nhóm (sai lệch bằng 0), nên kết quả tái lập được.
 
 Mã thí nghiệm của tác giả [2] học mỗi lô trước khi chấm, nên điểm của một mẫu đã chịu ảnh hưởng của
 chính mẫu đó. Nhóm cố ý không làm theo cách này. Baseline asdIFOR được dựng lại trên scikit-learn
 theo ý tưởng cửa sổ rời của IForestASD; tác giả dùng bản trong thư viện pysad. Vì vậy hai baseline
 cùng ý tưởng nhưng không cùng mã.
 
-Trên toàn luồng, trung vị ROC-AUC của OIF là 0,702 và của asdIFOR là 0,718. AP bằng nhau ở 0,097.
-Theo đoạn, OIF có trung vị cao hơn ở đoạn 1, 5 và 6, thấp hơn ở đoạn 2, 3 và 4. Các chênh lệch này
-đều nhỏ so với khoảng Q1–Q3 của OIF, nên không nên đọc bảng như một bảng xếp hạng.
+Trên toàn luồng, trung vị ROC-AUC của OIF là 0,706 và của asdIFOR là 0,718; AP lần lượt 0,104 và
+0,097. Theo đoạn, OIF có trung vị thấp hơn ở đoạn 1 và 3, cao hơn rất ít ở đoạn 2, 4, 5 và 6. Các
+chênh lệch này đều nhỏ so với khoảng Q1–Q3 của OIF, nên không nên đọc bảng như một bảng xếp hạng.
 
 AP thay đổi mạnh theo đoạn chủ yếu vì tỷ lệ bất thường thay đổi. Đoạn 5 có 30,57% bất thường nên AP
 khoảng 0,4; đoạn 4 chỉ có 2,19% nên AP khoảng 0,03. Vì vậy so AP chỉ có ý nghĩa giữa hai mô hình
@@ -277,13 +278,13 @@ Research*, vol. 12, pp. 2825–2830, 2011.
 
 | Mốc | Đoạn | OIF | asdIFOR |
 |---|---|---:|---:|
-| 51255 | 1 → 2 | −0,208 | −0,194 |
-| 74381 | 2 → 3 | +0,136 | +0,143 |
-| 100944 | 3 → 4 | −0,075 | −0,085 |
-| 142291 | 4 → 5 | +0,037 | +0,005 |
-| 152207 | 5 → 6 | +0,071 | +0,090 |
+| 51255 | 1 → 2 | −0,167 | −0,194 |
+| 74381 | 2 → 3 | +0,134 | +0,143 |
+| 100944 | 3 → 4 | −0,082 | −0,085 |
+| 142291 | 4 → 5 | +0,006 | +0,005 |
+| 152207 | 5 → 6 | +0,095 | +0,090 |
 
-- Hai mô hình đổi cùng chiều ở 5/5 mốc. Đáy của cả hai nằm quanh tâm cửa sổ 70.600: OIF 0,543,
+- Hai mô hình đổi cùng chiều ở 5/5 mốc. Đáy của cả hai nằm tại tâm cửa sổ 70.600: OIF 0,551,
   asdIFOR 0,524.
 
 **Hình minh họa**
@@ -296,10 +297,16 @@ Hình tái hiện cách trình bày của Hình 7 trong bài báo [1] bằng s�
 ROC-AUC tính trên 5.000 mẫu liên tiếp, đặt ở tâm cửa sổ như Mục 5.3 mô tả. Cửa sổ đánh giá này khác
 cửa sổ học 2048 mẫu: cửa sổ học là thứ mô hình nhớ, cửa sổ đánh giá chỉ dùng để làm mượt đường cong.
 
-Mốc đầu tiên tại 51.255 gây sụt mạnh nhất: trung vị ROC-AUC theo đoạn giảm khoảng 0,2 ở cả hai mô
-hình. Đường cong chạm đáy quanh 70.600, gần cuối đoạn 2, rồi bật lên ngay sau mốc 74.381. Mốc 100.944
-lại kéo chất lượng xuống. Hai mốc cuối đưa chất lượng hồi dần: đoạn 6 có trung vị 0,762 (OIF), gần
-mức 0,801 của đoạn 1, và các đỉnh cao nhất của đường cong nằm trong đoạn 6.
+Mốc đầu tiên tại 51.255 gây sụt mạnh nhất: trung vị ROC-AUC theo đoạn giảm 0,167 (OIF) và 0,194
+(asdIFOR). Đường cong chạm đáy tại 70.600, gần cuối đoạn 2, rồi bật lên ngay sau mốc 74.381. Mốc
+100.944 lại kéo chất lượng xuống. Hai mốc cuối đưa chất lượng hồi dần: đoạn 6 có trung vị 0,760
+(OIF), gần mức 0,774 của đoạn 1, và đỉnh cao nhất của đường trung vị nằm trong đoạn 6 (OIF 0,911 tại
+165.600; asdIFOR 0,927 tại 179.600).
+
+Ở đầu luồng, OIF thấp hơn asdIFOR rõ rệt: với các cửa sổ có tâm đến 20.000, trung vị đường OIF là
+0,735, của asdIFOR là 0,795. Phần còn lại của đoạn 1 (sau 25.000) hai đường gần nhau (chênh trung vị
+0,012). Giả thuyết, chưa kiểm chứng: OIF bắt đầu từ cây rỗng và giới hạn độ sâu `δ` chỉ tăng dần theo
+số mẫu trong cửa sổ, còn asdIFOR dựng lại cả rừng sau mỗi lô cho tới khi đủ 2048 mẫu.
 
 Điều đáng chú ý là hai mô hình rất khác nhau về cơ chế: OIF cập nhật từng mẫu, còn asdIFOR dựng lại
 rừng sau mỗi 2048 mẫu. Dù vậy, chúng đi cùng chiều ở cả 5 mốc với biên độ gần nhau. Điều này phù hợp
@@ -308,8 +315,9 @@ phương pháp nào luôn giữ được chất lượng sau thay đổi.
 
 Một cách giải thích: cả hai chỉ nhớ khoảng 2048 mẫu gần nhất, nên sau mỗi mốc cần cỡ một cửa sổ để
 thay hết mẫu cũ. Ngoài ra, độ khó của bài toán cũng có thể đổi theo đoạn (giả thuyết), ví dụ khi lớp
-bất thường và bình thường gần nhau hơn ở nhiệt độ mới. Mức sụt không chỉ phản ánh tốc độ thích nghi của mô hình. Nhóm
-chưa tách riêng được hai yếu tố này; phân tích sâu hơn về phục hồi do phần việc của Trân đảm nhận.
+bất thường và bình thường gần nhau hơn ở nhiệt độ mới. Mức sụt không chỉ phản ánh tốc độ thích nghi
+của mô hình. Nhóm chưa tách riêng được hai yếu tố này. Phân tích độ trễ phục hồi sau từng mốc (lượt
+d = 10, 5 seed) do Trân thực hiện, xem `results/drift-fixed-10.md`.
 
 [1] F. Leveni, G. Weigert Cassales, B. Pfahringer, A. Bifet, and G. Boracchi, "Online Isolation
 Forest," in *Proc. 41st Int. Conf. Machine Learning*, PMLR, vol. 235, pp. 27288–27298, 2024.
@@ -320,24 +328,37 @@ Forest," in *Proc. 41st Int. Conf. Machine Learning*, PMLR, vol. 235, pp. 27288�
 
 **Nội dung trên slide**
 
-- ROC-AUC toàn luồng qua 5 seed:
-  - OIF trong [0,688; 0,769], IQR 0,035;
+- ROC-AUC toàn luồng qua 5 seed, d = 33:
+  - OIF trong [0,645; 0,748], IQR 0,048;
   - asdIFOR trong [0,706; 0,718], IQR 0,007.
-  - Đoạn dao động mạnh nhất của OIF là đoạn 2 (0,481–0,678).
-- d = 33 so với d = 10 (seed 0; script tác giả chỉ dùng 10 đặc trưng đầu):
+  - Đoạn dao động mạnh nhất của OIF là đoạn 5 (0,536–0,745).
+- d = 33 so với d = 10 (5 seed mỗi cấu hình; script tác giả chỉ dùng 10 đặc trưng đầu):
 
-| Đoạn | OIF d=33 | OIF d=10 | asdIFOR d=33 | asdIFOR d=10 |
+| Mô hình | d = 33: trung vị [Q1; Q3] | d = 33: min–max | d = 10: trung vị [Q1; Q3] | d = 10: min–max |
 |---|---:|---:|---:|---:|
-| Toàn luồng | 0,733 | 0,735 | 0,711 | 0,786 |
-| 1 | 0,793 | 0,841 | 0,793 | 0,871 |
-| 2 | 0,576 | 0,688 | 0,604 | 0,714 |
-| 3 | 0,762 | 0,746 | 0,755 | 0,807 |
-| 4 | 0,654 | 0,731 | 0,658 | 0,769 |
-| 5 | 0,726 | 0,647 | 0,680 | 0,753 |
-| 6 | 0,776 | 0,773 | 0,722 | 0,801 |
+| OIF | 0,706 [0,696; 0,744] | 0,645–0,748 | 0,728 [0,722; 0,788] | 0,691–0,830 |
+| asdIFOR | 0,718 [0,711; 0,718] | 0,706–0,718 | 0,786 [0,785; 0,786] | 0,785–0,798 |
 
-- Thời gian toàn luồng (trung vị): OIF 173,7 s (~818 µs/mẫu; học 126,9 s, chấm 46,9 s), asdIFOR
-  9,4 s, tức OIF chậm hơn khoảng 18 lần.
+| Seed | 0 | 1 | 2 | 3 | 4 |
+|---|---:|---:|---:|---:|---:|
+| OIF d = 33 | 0,744 | 0,696 | 0,645 | 0,706 | 0,748 |
+| OIF d = 10 | 0,691 | 0,722 | 0,788 | 0,728 | 0,830 |
+| asdIFOR d = 33 | 0,711 | 0,718 | 0,706 | 0,718 | 0,718 |
+| asdIFOR d = 10 | 0,786 | 0,785 | 0,786 | 0,785 | 0,798 |
+
+- Thời gian toàn luồng d = 33 (trung vị 5 seed, chạy tuần tự): OIF 182,9 s (~861 µs/mẫu; học
+  131,5 s, chấm 51,4 s), asdIFOR 10,2 s, tức OIF chậm hơn khoảng 18 lần.
+- W&B (d = 10): OIF seed [0](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/lpprt64h),
+  [1](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/5nsp99kc),
+  [2](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/bkkazl0o),
+  [3](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/zrvo8y72),
+  [4](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/gq0qkj76);
+  asdIFOR seed [0](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/pqz5mwjq),
+  [1](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/8w9ds7kg),
+  [2](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/nijtz9s7),
+  [3](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/5b66rbfq),
+  [4](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/zkiiyp3g).
+  d = 33: chưa tải lên (TODO).
 
 **Hình minh họa (tự vẽ)**
 
@@ -347,22 +368,24 @@ Phải: hai cột thời gian dùng cùng trục giây, kèm nhãn "Python thu�
 
 **Speaker notes**
 
-ROC-AUC của OIF dao động theo seed rộng hơn khoảng 7 lần so với asdIFOR, tính theo khoảng min–max
-(0,081 so với 0,012). Chênh lệch trung vị giữa hai mô hình chỉ là 0,015, nhỏ hơn khoảng dao động của
-OIF. Vì vậy với 5 seed, nhóm không kết luận mô hình nào tốt hơn trên INSECTS. Giả thuyết, chưa kiểm
+Với d = 33, ROC-AUC của OIF dao động theo seed rộng hơn khoảng 9 lần so với asdIFOR, tính theo
+khoảng min–max (0,103 so với 0,012). Chênh lệch trung vị giữa hai mô hình chỉ là 0,012, nhỏ hơn
+khoảng dao động của OIF. Vì vậy với 5 seed, nhóm không kết luận mô hình nào tốt hơn trên INSECTS. Giả thuyết, chưa kiểm
 chứng: cấu trúc cây OIF phụ thuộc chuỗi phép tách ngẫu nhiên tích lũy suốt luồng (mỗi lần tách còn
 sinh mẫu ảo), còn asdIFOR xóa và dựng lại rừng định kỳ. Nhóm cũng phát hiện `forest.py` gán seed
 `seed + i` cho cây thứ i, nên hai seed liền nhau dùng chung 31/32 cây. Trong thí nghiệm này nhóm né
 bằng seed rừng `seed × 32` (điểm F4, đã báo người phụ trách).
 
-Bài báo ghi d = 33, nhưng script thí nghiệm của tác giả [2] chỉ lấy 10 cột đầu. Nhóm chạy thêm một
-lượt d = 10 với seed 0 để so cùng seed. Với asdIFOR, d = 10 đạt 0,786, nằm ngoài hẳn khoảng của 5
-seed d = 33. Với OIF, toàn luồng gần như không đổi (0,733 so với 0,735) nhưng từng đoạn thay đổi
-nhiều theo cả hai chiều. Vì mới có 1 seed cho d = 10, đây chỉ là dấu hiệu số đặc trưng ảnh hưởng tới
-kết quả. Nó cũng nhắc rằng so số với bài báo phải ghi rõ số đặc trưng.
+Bài báo ghi d = 33, nhưng script thí nghiệm của tác giả [2] chỉ lấy 10 cột đầu. Hai cấu hình được
+chạy với cùng `run.py`, cùng seed 0–4 và cùng cách cấp seed rừng, chỉ khác số cột. Với asdIFOR,
+d = 10 cao hơn ở cả 5 seed và hai khoảng min–max tách rời (0,785–0,798 so với 0,706–0,718). Với OIF,
+d = 10 cao hơn ở 4/5 seed (trung vị 0,728 so với 0,706) nhưng hai khoảng vẫn chồng lên nhau, và
+seed 0 lại ngược chiều (0,691 so với 0,744). Với 5 seed, đây là quan sát, chưa phải kiểm định thống
+kê. Kết quả nhắc rằng so số với bài báo phải ghi rõ số đặc trưng. Các link W&B ở trên là của lượt
+d = 10; lượt d = 10 không so thời gian vì các run OIF được chạy đồng thời.
 
 Về thời gian, bài báo kết luận oIFOR là phương pháp nhanh nhất [1], còn ở nhóm OIF chậm hơn khoảng
-18 lần. Nguyên nhân chủ yếu là cách cài đặt chứ không phải độ phức tạp thuật toán:
+18 lần (d = 33). Nguyên nhân chủ yếu là cách cài đặt chứ không phải độ phức tạp thuật toán:
 
 - OIF của nhóm, cũng như mã tác giả, viết bằng Python thuần; mỗi mẫu đi qua vòng lặp Python trên 32
   cây để học, cộng thêm một lần quên.

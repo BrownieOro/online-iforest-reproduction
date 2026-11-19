@@ -1,12 +1,16 @@
-"""Tổng hợp thí nghiệm drift INSECTS từ `results/raw/drift*/`.
+"""Tổng hợp thí nghiệm drift INSECTS.
 
-Tạo `results/drift-by-segment.csv`, `figures/drift-quality.png` và `results/drift.md`. Mọi số liệu
-đọc từ `config.json`/`metrics.json` của từng lần chạy; script không chạy lại mô hình.
+Đọc d = 33 từ `results/raw/drift-v2/` (`config.json`/`metrics.json` từng lần chạy) và d = 10 từ
+bảng từng run trong `results/drift-fixed-10.md` (5 seed sau sửa F1, có link W&B). Tạo
+`results/drift-by-segment.csv`, `figures/drift-quality.png` và `results/drift.md`; script không
+chạy lại mô hình.
 """
 from __future__ import annotations
 
 import csv
 import json
+import re
+import subprocess
 from pathlib import Path
 
 import matplotlib
@@ -17,7 +21,10 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 RAW = ROOT / "results" / "raw"
-RUN_DIRS = {33: RAW / "drift", 10: RAW / "drift_10features"}
+RUN_DIR_33 = RAW / "drift-v2"
+FIXED10_PATH = ROOT / "results" / "drift-fixed-10.md"
+BOOTSTRAP_CSV = ROOT / "results" / "drift-after-bootstrap.csv"
+F1_FIX = "6ac25e3"  # commit sửa giới hạn độ sâu khi khởi động (F1)
 CSV_PATH = ROOT / "results" / "drift-by-segment.csv"
 FIGURE_PATH = ROOT / "figures" / "drift-quality.png"
 REPORT_PATH = ROOT / "results" / "drift.md"
@@ -44,6 +51,41 @@ def load_runs(directory):
     for model in runs:
         runs[model].sort(key=lambda item: item[0]["seed"])
     return runs
+
+
+def load_fixed10(path=FIXED10_PATH):
+    """Đọc bảng từng run trong `drift-fixed-10.md`; trả {model: [(seed, auc, ap, url), ...]}."""
+    pattern = re.compile(r"^\| (oif|asdifor)_seed(\d+) \| ([0-9.]+) \| ([0-9.]+) \| "
+                         r"\[run\]\((\S+)\) \|")
+    runs = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        m = pattern.match(line)
+        if m:
+            runs.setdefault(m[1], []).append((int(m[2]), float(m[3]), float(m[4]), m[5]))
+    if set(runs) != set(MODELS):
+        raise ValueError(f"{path} must list runs for {sorted(MODELS)}")
+    for model in runs:
+        runs[model].sort()
+    return runs
+
+
+def has_commit(ancestor, commit):
+    """True nếu `ancestor` nằm trong lịch sử của `commit` (dùng `git merge-base`)."""
+    result = subprocess.run(["git", "merge-base", "--is-ancestor", ancestor, commit], cwd=ROOT,
+                            capture_output=True)
+    return result.returncode == 0
+
+
+def bootstrap_check(runs33, path=BOOTSTRAP_CSV):
+    """So ROC-AUC từng seed d = 33 với `drift-after-bootstrap.csv`; trả (số cặp, sai lệch lớn nhất)."""
+    if not path.is_file():
+        return None
+    with path.open(encoding="utf-8-sig", newline="") as f:
+        ref = {(r["model"], int(r["seed"])): float(r["roc_auc"]) for r in csv.DictReader(f)
+               if r["n_features"] == "33"}
+    diffs = [abs(m["roc_auc"] - ref[(model, c["seed"])]) for model, v in runs33.items()
+             for c, m in v if (model, c["seed"]) in ref]
+    return (len(diffs), max(diffs)) if diffs else None
 
 
 def describe(values):
@@ -74,24 +116,38 @@ def scope_values(metrics_list, scope):
     return info, values
 
 
-def summarize(all_runs):
-    """Tạo các dòng của bảng theo (n_features, model, phạm vi)."""
+def _row(n_features, model, scope, info, seeds, values):
+    """Một dòng bảng tổng hợp: khóa, thông tin phạm vi và thống kê của từng chỉ số."""
+    row = {"n_features": n_features, "model": MODELS[model],
+           "scope": "all" if scope == "all" else f"segment_{scope}", **info,
+           "n_seeds": len(seeds), "seeds": " ".join(map(str, seeds))}
+    for metric in METRICS:
+        for stat, value in describe(values[metric]).items():
+            row[f"{metric}_{stat}"] = value
+    return row
+
+
+def summarize(runs33, fixed10):
+    """Tạo các dòng bảng: d = 33 cho toàn luồng và 6 đoạn; d = 10 chỉ toàn luồng.
+
+    `drift-fixed-10.md` chỉ ghi ROC-AUC/AP toàn luồng và không so thời gian, nên các ô thời gian
+    và các đoạn của d = 10 để trống. Thông tin dòng (`row_start`, số mẫu, số bất thường) lấy từ
+    d = 33 vì hai cấu hình dùng cùng các dòng và nhãn.
+    """
     rows = []
-    for n_features, runs in all_runs.items():
-        for model in MODELS:
-            if model not in runs:
-                continue
-            metrics_list = [m for _, m in runs[model]]
-            seeds = [c["seed"] for c, _ in runs[model]]
-            for scope in ["all", *range(1, len(CHANGE_POINTS) + 2)]:
-                info, values = scope_values(metrics_list, scope)
-                row = {"n_features": n_features, "model": MODELS[model],
-                       "scope": "all" if scope == "all" else f"segment_{scope}", **info,
-                       "n_seeds": len(seeds), "seeds": " ".join(map(str, seeds))}
-                for metric in METRICS:
-                    for stat, value in describe(values[metric]).items():
-                        row[f"{metric}_{stat}"] = value
-                rows.append(row)
+    for model in MODELS:
+        metrics_list = [m for _, m in runs33[model]]
+        seeds = [c["seed"] for c, _ in runs33[model]]
+        for scope in ["all", *range(1, len(CHANGE_POINTS) + 2)]:
+            info, values = scope_values(metrics_list, scope)
+            rows.append(_row(33, model, scope, info, seeds, values))
+    info_all, _ = scope_values([m for _, m in runs33["oif"]], "all")
+    for model in MODELS:
+        runs = fixed10[model]
+        values = dict.fromkeys(METRICS, [None] * len(runs))
+        values["roc_auc"] = [r[1] for r in runs]
+        values["average_precision"] = [r[2] for r in runs]
+        rows.append(_row(10, model, "all", info_all, [r[0] for r in runs], values))
     return rows
 
 
@@ -151,40 +207,36 @@ def pick(rows, n_features, model, scope):
                 and r["scope"] == scope)
 
 
-def seed0(runs, model, scope):
-    """(ROC-AUC, AP, giây) của seed 0 cho một phạm vi, để so cùng seed giữa d = 33 và d = 10."""
-    config, m = runs[model][0]
-    if config["seed"] != 0:
-        raise ValueError("Expected seed 0 as the first run")
-    if scope == "all":
-        return m["roc_auc"], m["average_precision"], m["total_seconds"]
-    s = next(s for s in m["segments"] if s["segment"] == scope)
-    return s["roc_auc"], s["average_precision"], s["seconds"]
-
-
-def report(rows, all_runs):
+def report(rows, runs33, fixed10):
     """Viết `results/drift.md` từ bảng tổng hợp; nhận xét định lượng được tính từ số liệu."""
-    runs33, runs10 = all_runs[33], all_runs.get(10, {})
     n_seeds = len(runs33["oif"])
-    commits = sorted({c["git_commit"][:7] for r in all_runs.values() for v in r.values()
-                      for c, _ in v})
+    commits = sorted({c["git_commit"][:7] for v in runs33.values() for c, _ in v})
     scopes = ["all", *[f"segment_{k}" for k in range(1, 7)]]
     label = {"all": "Toàn luồng", **{f"segment_{k}": str(k) for k in range(1, 7)}}
     L = []
     add = L.append
     add("# Kết quả thí nghiệm concept drift trên INSECTS\n")
-    add(f"**Trạng thái:** đã chạy {n_seeds} seed (0–{n_seeds - 1}) với đủ 33 đặc trưng và 1 lượt "
-        f"đối chiếu 10 đặc trưng (seed 0), commit `{', '.join(commits)}`. Kết quả thô nằm trong "
-        "`results/raw/drift/` và `results/raw/drift_10features/` (Git bỏ qua), bảng đầy đủ ở "
-        "[`drift-by-segment.csv`](drift-by-segment.csv). Chưa có đường dẫn W&B. Số liệu sinh bởi "
+    full = {c["git_commit"] for v in runs33.values() for c, _ in v}
+    has_f1 = all(has_commit(F1_FIX, c) for c in full)
+    add(f"**Trạng thái:** d = 33 chạy {n_seeds} seed (0–{n_seeds - 1}) tại commit "
+        f"`{', '.join(commits)}` ("
+        + ("đã có" if has_f1 else "**chưa có hoặc không xác định được**")
+        + f" bản sửa F1 `{F1_FIX}`); kết quả thô trong "
+        "`results/raw/drift-v2/` (Git bỏ qua), chưa tải lên W&B. d = 10 lấy từ "
+        "[`drift-fixed-10.md`](drift-fixed-10.md) (5 seed, cùng `run.py`, sau sửa F1), mỗi run có "
+        "link W&B. Bảng đầy đủ ở [`drift-by-segment.csv`](drift-by-segment.csv). Số liệu sinh bởi "
         "[`experiments/exp2_drift/plot_summary.py`](../experiments/exp2_drift/plot_summary.py).\n")
-    dirty = [f"d = {d}: {c['model']} seed {c['seed']}" for d, r in all_runs.items()
-             for v in r.values() for c, _ in v if c["git_worktree_dirty"]]
+    check = bootstrap_check(runs33)
+    if check:
+        add(f"Đối chiếu: ROC-AUC toàn luồng của {check[0]} lần chạy d = 33 "
+            + ("khớp" if check[1] < 1e-9 else "**không khớp**")
+            + " [`drift-after-bootstrap.csv`](drift-after-bootstrap.csv), sai lệch lớn nhất "
+            f"{check[1]:.1e}.\n")
+    dirty = [f"{c['model']} seed {c['seed']}" for v in runs33.values() for c, _ in v
+             if c["git_worktree_dirty"]]
     if dirty:
         add(f"Các lần chạy có `git_worktree_dirty = true` ({'; '.join(dirty)}): lúc chạy, working "
-            "tree có thay đổi chưa commit; cần đối chiếu `git_commit` trong `config.json`. Với lượt "
-            "d = 10, thay đổi duy nhất là tệp `plot_summary.py` mới chưa được theo dõi, không được "
-            "`run.py` dùng.\n")
+            "tree có thay đổi chưa commit; cần đối chiếu `git_commit` trong `config.json`.\n")
 
     add("## Giao thức\n")
     add("- Dữ liệu `data/processed/insects.csv` (212.514 mẫu), giữ nguyên thứ tự dòng; không xáo "
@@ -198,13 +250,13 @@ def report(rows, all_runs):
         "huấn luyện lại trên 2048 mẫu gần nhất sau mỗi 2048 mẫu mới, giống ý tưởng cửa sổ rời của "
         "`pysad.IForestASD` mà tác giả dùng nhưng không phải cùng mã.")
     add("- Chỉ số: ROC-AUC, AP trên toàn luồng và từng đoạn; ROC-AUC trên cửa sổ trượt 5.000 mẫu, "
-        "bước 1.000 (208 cửa sổ); thời gian học và chấm điểm (giây, CPU laptop, 1 luồng).")
+        "bước 1.000 (208 cửa sổ); thời gian học và chấm điểm (giây, CPU laptop, 1 luồng, các "
+        "lần chạy d = 33 chạy tuần tự).")
     add("- Tiền xử lý: không có. Dùng nguyên CSV đã chuẩn bị, không chuẩn hóa/scaling, không điền "
         "khuyết, không xáo trộn, không bỏ dòng trùng; lượt d = 10 chỉ lấy 10 cột đầu `x0..x9`.")
     add("- Đo thời gian: `time.perf_counter` (giây, thời gian thực), đo tách riêng phần chấm điểm "
-        "và phần học của từng lô rồi cộng dồn; không tính thời gian đọc dữ liệu và ghi tệp. Các "
-        "lần chạy hiện có được tạo trước khi `config.json` có trường `preprocessing` và `timing`; "
-        "hai dòng này ghi lại đúng cách mà `run.py` ở commit của chúng đã làm.\n")
+        "và phần học của từng lô rồi cộng dồn; không tính thời gian đọc dữ liệu và ghi tệp (ghi "
+        "trong trường `preprocessing` và `timing` của `config.json`).\n")
 
     add(f"## Kết quả theo đoạn (d = 33, trung vị [Q1; Q3] qua {n_seeds} seed)\n")
     add("| Đoạn | `row_index` | Số mẫu | Bất thường | OIF ROC-AUC | asdIFOR ROC-AUC | OIF AP | "
@@ -228,38 +280,43 @@ def report(rows, all_runs):
         "đổi. Mỗi điểm đặt ở tâm cửa sổ (`row_start + 2500`), theo mô tả ở Mục 5.3 của bài báo. Đây "
         "là hình do nhóm tạo, không phải hình trích từ bài báo.\n")
 
-    if runs10:
-        add("## Đối chiếu d = 33 và d = 10 (seed 0)\n")
-        add("Script của tác giả chỉ dùng 10 đặc trưng đầu (`data[:, :10]`). Bảng so cùng seed 0 "
-            "để tách ảnh hưởng của số đặc trưng khỏi phương sai theo seed.\n")
-        add("| Đoạn | OIF d=33 | OIF d=10 | asdIFOR d=33 | asdIFOR d=10 | OIF AP d=33 | OIF AP d=10 |")
-        add("|---|---:|---:|---:|---:|---:|---:|")
-        for scope in scopes:
-            key = "all" if scope == "all" else int(scope.split("_")[1])
-            o33, o10 = seed0(runs33, "oif", key), seed0(runs10, "oif", key)
-            a33, a10 = seed0(runs33, "asdifor", key), seed0(runs10, "asdifor", key)
-            add(f"| {label[scope]} | {vn(o33[0])} | {vn(o10[0])} | {vn(a33[0])} | {vn(a10[0])} | "
-                f"{vn(o33[1])} | {vn(o10[1])} |")
-        t = {(d, mdl): seed0(r, mdl, "all")[2] for d, r in ((33, runs33), (10, runs10))
-             for mdl in MODELS}
-        add(f"\nThời gian toàn luồng (seed 0): OIF {vn(t[33, 'oif'], 1)} giây với d = 33 và "
-            f"{vn(t[10, 'oif'], 1)} giây với d = 10; asdIFOR {vn(t[33, 'asdifor'], 1)} và "
-            f"{vn(t[10, 'asdifor'], 1)} giây.\n")
-        verdicts = []
-        for model, name in MODELS.items():
-            r = pick(rows, 33, name, "all")
-            v10 = seed0(runs10, model, "all")[0]
-            inside = r["roc_auc_min"] <= v10 <= r["roc_auc_max"]
-            verdicts.append(
-                f"{name} d = 10 đạt {vn(v10)}, "
-                + ("nằm trong" if inside else "nằm ngoài")
-                + f" khoảng [{vn(r['roc_auc_min'])}; {vn(r['roc_auc_max'])}] của {n_seeds} seed "
-                "với d = 33")
-        add("ROC-AUC toàn luồng: " + "; ".join(verdicts) + ". Chỉ có 1 seed cho d = 10, nên một "
-            "giá trị nằm trong khoảng dao động theo seed chưa cho thấy khác biệt; giá trị nằm ngoài "
-            "khoảng là dấu hiệu số đặc trưng có ảnh hưởng, cần thêm seed để khẳng định. Chênh lệch "
-            "theo từng đoạn xem ở bảng trên; ở cấp đoạn chưa có khoảng dao động theo seed của "
-            "d = 10 để so.\n")
+    add("## Đối chiếu d = 33 và d = 10 (toàn luồng, 5 seed mỗi cấu hình)\n")
+    add("Script của tác giả chỉ dùng 10 đặc trưng đầu (`data[:, :10]`). Số d = 10 lấy từ "
+        "[`drift-fixed-10.md`](drift-fixed-10.md); hai cấu hình dùng cùng `run.py`, cùng seed "
+        "0–4 và cùng cách cấp seed rừng (`seed * 32`), chỉ khác số cột.\n")
+    add("| Mô hình | d = 33: ROC-AUC trung vị [Q1; Q3] | d = 33: min–max | "
+        "d = 10: ROC-AUC trung vị [Q1; Q3] | d = 10: min–max | AP trung vị d = 33 | "
+        "AP trung vị d = 10 |")
+    add("|---|---:|---:|---:|---:|---:|---:|")
+    for name in MODELS.values():
+        r33, r10 = pick(rows, 33, name, "all"), pick(rows, 10, name, "all")
+        add(f"| {name} | " + " | ".join(
+            f"{vn(r['roc_auc_median'])} [{vn(r['roc_auc_q1'])}; {vn(r['roc_auc_q3'])}] | "
+            f"{vn(r['roc_auc_min'])}–{vn(r['roc_auc_max'])}" for r in (r33, r10))
+            + f" | {vn(r33['average_precision_median'])} | "
+            f"{vn(r10['average_precision_median'])} |")
+    add("\nTheo từng seed (ROC-AUC toàn luồng; link W&B của lượt d = 10):\n")
+    add("| Seed | OIF d = 33 | OIF d = 10 | asdIFOR d = 33 | asdIFOR d = 10 | W&B d = 10 |")
+    add("|---:|---:|---:|---:|---:|---|")
+    by_seed = {model: {c["seed"]: m["roc_auc"] for c, m in runs33[model]} for model in MODELS}
+    ten = {model: {s: (auc, url) for s, auc, _, url in fixed10[model]} for model in MODELS}
+    seeds = sorted(set(by_seed["oif"]) & set(ten["oif"]))
+    for s in seeds:
+        add(f"| {s} | {vn(by_seed['oif'][s])} | {vn(ten['oif'][s][0])} | "
+            f"{vn(by_seed['asdifor'][s])} | {vn(ten['asdifor'][s][0])} | "
+            f"[OIF]({ten['oif'][s][1]}), [asdIFOR]({ten['asdifor'][s][1]}) |")
+    verdicts = []
+    for model, name in MODELS.items():
+        r33, r10 = pick(rows, 33, name, "all"), pick(rows, 10, name, "all")
+        higher = sum(ten[model][s][0] > by_seed[model][s] for s in seeds)
+        overlap = r10["roc_auc_min"] <= r33["roc_auc_max"] and r33["roc_auc_min"] <= r10["roc_auc_max"]
+        verdicts.append(
+            f"{name}: d = 10 cao hơn d = 33 ở {higher}/{len(seeds)} seed, khoảng min–max hai "
+            "cấu hình " + ("chồng lên nhau" if overlap else "tách rời"))
+    add("\n" + "; ".join(verdicts) + ". Khoảng tách rời nghĩa là chênh lệch lớn hơn dao động "
+        "theo seed quan sát được; với 5 seed đây vẫn là quan sát, chưa phải kiểm định. Lượt d = 10 "
+        "không ghi kết quả theo đoạn và không so thời gian (các run OIF chạy đồng thời); phân tích "
+        "phục hồi sau từng mốc của d = 10 nằm ở [`drift-fixed-10.md`](drift-fixed-10.md).\n")
 
     add("## Nhận xét\n")
     add("**Sụt giảm và phục hồi qua các mốc.** Thay đổi ROC-AUC trung vị từ đoạn trước sang đoạn "
@@ -332,55 +389,64 @@ def report(rows, all_runs):
         f"huấn luyện lại {refits} lần trên toàn luồng; chấm điểm được vector hóa theo lô 100.")
     add("- Tác giả chạy asdIFOR qua `pysad`, với giao diện xử lý từng mẫu, nên số thời gian trong bài "
         "báo không so trực tiếp được với baseline của nhóm.\n")
+    slow = []
+    for model, name in MODELS.items():
+        times = [(c["seed"], m["total_seconds"]) for c, m in runs33[model]]
+        med = float(np.median([t for _, t in times]))
+        slow += [f"{name} seed {s}: {vn(t, 1)} giây, gấp {vn(t / med, 0)} lần trung vị"
+                 for s, t in times if t > 5 * med]
+    if slow:
+        add(f"**Thời gian bất thường:** {'; '.join(slow)}. Thời gian thực của lần chạy này bị gián "
+            "đoạn (ví dụ máy vào chế độ ngủ); ROC-AUC/AP không bị ảnh hưởng, nhưng chỉ nên dùng "
+            "trung vị thời gian, không dùng min/max trong CSV cho mô hình này.\n")
 
     add("## Khác biệt so với bài báo và mã tác giả\n")
-    add("- Bài báo chạy 30 lần; nhóm chạy 5 seed (d = 33) và 1 seed (d = 10).")
+    add("- Bài báo chạy 30 lần; nhóm chạy 5 seed cho mỗi cấu hình d = 33 và d = 10.")
     add("- Mã tác giả học mỗi lô trước khi chấm điểm lô đó, nên điểm của một mẫu đã dùng chính mẫu "
         "đó; nhóm chấm điểm trước khi học. Mã tác giả cũng có thêm holdout ngẫu nhiên 10%, nhóm "
         "không dùng.")
-    add("- Mã tác giả chỉ dùng 10 đặc trưng; bài báo ghi d = 33. Nhóm báo cáo chính với d = 33.")
+    add("- Mã tác giả chỉ dùng 10 đặc trưng; bài báo ghi d = 33. Bảng theo đoạn và hình ở đây "
+        "dùng d = 33; kết quả d = 10 (có W&B) ở [`drift-fixed-10.md`](drift-fixed-10.md).")
     add("- Hình của nhóm dùng bước cửa sổ 1.000 và đặt điểm ở tâm cửa sổ; script vẽ của tác giả "
         "dùng bước 10 và co giãn chỉ số đầu cửa sổ theo độ dài luồng.")
     add("- Không chép số liệu bài báo; Hình 7 không có bảng số nên chỉ so được về hình dạng.\n")
 
     add("## Tệp kết quả\n")
-    add("- `results/raw/drift/<model>_seed<s>/` và `results/raw/drift_10features/<model>_seed0/`: "
-        "`config.json`, `metrics.json`, `predictions.csv` (cột `row_index, segment, label, "
-        "anomaly_score`).")
+    add("- `results/raw/drift-v2/<model>_seed<s>/` (d = 33): `config.json`, `metrics.json`, "
+        "`predictions.csv` (cột `row_index, segment, label, anomaly_score`).")
     add("- [`drift-by-segment.csv`](drift-by-segment.csv): trung vị, Q1, Q3, min, max của ROC-AUC, "
         "AP, `learn_seconds`, `score_seconds`, `total_seconds` theo `n_features`, mô hình và phạm vi "
-        "(`all`, `segment_1`…`segment_6`). Ô trống là chỉ số không được ghi cho phạm vi đó.")
+        "(`all`, `segment_1`…`segment_6`; d = 10 chỉ có `all`). Ô trống là chỉ số không được ghi "
+        "cho phạm vi đó.")
     add("- [`../figures/drift-quality.png`](../figures/drift-quality.png).\n")
 
-    add("## Tải kết quả lên W&B\n")
-    add("Cần cài phần phụ thuộc W&B (`python -m pip install -e .[wandb]`), đăng nhập (`wandb login`) "
-        "và đặt `WANDB_PROJECT`/`WANDB_ENTITY` trong `.env`; không đưa khóa API vào Git. Hai cách:\n")
-    add("1. Chạy lại thí nghiệm với `WANDB_MODE=online`; `run.py` tự gọi `oif.tracking.log_run` sau "
-        "khi ghi 3 tệp (khoảng 15 phút cho 5 seed).")
-    add("2. Tải các lần chạy đã có mà không chạy lại mô hình:\n")
+    add("## Tải kết quả d = 33 lên W&B\n")
+    add("Lượt d = 10 đã có link W&B (xem [`docs/wandb-runs.md`](../docs/wandb-runs.md)). Lượt "
+        "d = 33 chưa tải. Cần cài phần phụ thuộc W&B (`python -m pip install -e .[wandb]`), đăng "
+        "nhập (`wandb login`) và đặt `WANDB_PROJECT`/`WANDB_ENTITY`; không đưa khóa API vào Git. "
+        "Dùng script tải của nhóm, không chạy lại mô hình:\n")
     add("```powershell")
-    add("$env:WANDB_MODE = 'online'; $env:PYTHONPATH = 'src'")
-    add("python -c \"import json; from pathlib import Path; from oif.tracking import log_run; "
-        "[print(d.name, log_run(json.loads((d/'config.json').read_text(encoding='utf-8')), "
-        "json.loads((d/'metrics.json').read_text(encoding='utf-8')), d)) "
-        "for p in ('results/raw/drift', 'results/raw/drift_10features') "
-        "for d in sorted(Path(p).glob('*_seed*'))]\"")
+    add("python experiments/exp2_drift/upload_runs.py results/raw/drift-v2 "
+        "--manifest results/raw/drift-v2/wandb-links.json")
     add("```\n")
-    add("Mỗi lần chạy thành một W&B run có tag `reproduction`, `drift` và tên mô hình, kèm 3 tệp "
-        "kết quả dưới dạng artifact. Sau khi tải lên, bổ sung đường dẫn vào mục Trạng thái.")
+    add("Script ghi URL từng run vào manifest; sau đó bổ sung các URL vào mục Trạng thái và "
+        "`docs/wandb-runs.md`.")
     REPORT_PATH.write_text("\n".join(L) + "\n", encoding="utf-8")
 
 
 def main():
     """Đọc kết quả thô và ghi bảng CSV, hình PNG, báo cáo Markdown."""
-    all_runs = {d: load_runs(p) for d, p in RUN_DIRS.items() if p.is_dir()}
-    if 33 not in all_runs or set(all_runs[33]) != set(MODELS):
-        raise FileNotFoundError("Run experiments/exp2_drift/run.py first (results/raw/drift)")
-    rows = summarize(all_runs)
+    runs33 = load_runs(RUN_DIR_33) if RUN_DIR_33.is_dir() else {}
+    if set(runs33) != set(MODELS):
+        raise FileNotFoundError("Run experiments/exp2_drift/run.py --output results/raw/drift-v2 first")
+    if any(c["n_features"] != 33 for v in runs33.values() for c, _ in v):
+        raise ValueError(f"{RUN_DIR_33} must contain d = 33 runs only")
+    fixed10 = load_fixed10()
+    rows = summarize(runs33, fixed10)
     FIGURE_PATH.parent.mkdir(parents=True, exist_ok=True)
     write_csv(rows)
-    plot(all_runs[33])
-    report(rows, all_runs)
+    plot(runs33)
+    report(rows, runs33, fixed10)
     for path in (CSV_PATH, FIGURE_PATH, REPORT_PATH):
         print(f"{path.relative_to(ROOT).as_posix()}: {path.stat().st_size} bytes")
 
