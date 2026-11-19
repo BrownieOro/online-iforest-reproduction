@@ -51,8 +51,7 @@ Phúc đã chạy lại OIF 30 seed cho Annthyroid và Mammography với cách l
 
 **Nội dung trên slide**
 
-- Annthyroid: 7.200 dòng, 6 đặc trưng; paper ghi 6.832 dòng trong bảng benchmark [4], [5].
-  Tệp nhóm lấy từ repo Online-Isolation-Forest [1].
+- Annthyroid: nhóm dùng bản 7.200 dòng, 6 đặc trưng từ repo [1]; paper benchmark liệt kê 6.832 dòng [4], [5].
 - Mammography: 11.183 dòng, 6 đặc trưng [1].
 - Chạy 30 seed (0–29); báo cáo ROC-AUC, average precision (AP) và thời gian.
 - Nêu rõ đây là hai bộ dữ liệu stationary trong phạm vi tái tạo của nhóm.
@@ -60,14 +59,17 @@ Phúc đã chạy lại OIF 30 seed cho Annthyroid và Mammography với cách l
 **Speaker notes**
 
 Tệp Annthyroid nhóm dùng có 7.200 dòng, gồm 6.666 bình thường và 534 bất thường
-(7,42%). OpenML ghi bộ gốc gồm 3.772 dòng train và 3.428 dòng test; một công bố
-khác cũng ghi 7.200 dòng, 6 đặc trưng và tỷ lệ bất thường xấp xỉ 7% [2], [3].
-Bảng benchmark Isolation Forest 2008 ghi 6.832 dòng và 7%; paper Online Isolation
-Forest lặp lại cặp số đó [4], [5]. Đối chiếu hiện có cho thấy nhiều khả năng số
-6.832 là lỗi số mẫu trong bảng benchmark được lặp lại, chứ không phải do code xử
-lý của nhóm. Cách chuẩn bị dữ liệu của nhóm chỉ bỏ cột ID và giữ nguyên mọi dòng;
-có 138 dòng trùng theo đặc trưng và nhãn, nên loại trùng cũng không tạo ra 6.832.
-Nhóm giữ nguyên bộ dữ liệu 7.200 dòng và báo rõ sai khác này.
+(7,42%). UCI ghi bộ ANN có 3.772 dòng train và 3.428 dòng test; các nguồn ODDS
+cũng phổ biến bản 7.200 dòng [1], [2]. Bảng Isolation Forest 2008 ghi 6.832 dòng
+và 7%; paper Online Isolation Forest lặp lại cặp số đó [4], [5]. Một đối chiếu
+độc lập cho biết họ không khôi phục được đúng phiên bản 6.832: bản trên web có
+7.200 dòng, còn paper không dẫn bước tiền xử lý để giải thích chênh lệch [6].
+Nghiên cứu đó cũng dùng bản 7.200 nhưng báo tỷ lệ outlier 2%, nên cách chọn nhãn
+có thể khác giữa các bản/phép đánh giá. Vì vậy, slide nên gọi đây là sai khác
+phiên bản hoặc tiền xử lý chưa được giải thích; chưa đủ căn cứ kết luận tệp nhóm
+sai hay 6.832 là lỗi gõ. Script nhóm kiểm tra SHA-256, chỉ bỏ cột ID và giữ mọi
+dòng; có 138 dòng trùng theo đặc trưng và nhãn, không đủ để giải thích 368 dòng
+chênh lệch. Không tự xóa dòng để khớp paper nếu chưa có quy tắc lọc được xác nhận.
 
 ## Phần 6.1 — Cách đánh giá
 
@@ -145,3 +147,7 @@ https://cs.nju.edu.cn/zhouzh/zhouzh.files/publication/icdm08b.pdf.
 [5] L. Leveni et al., “Online Isolation Forest,” *Proceedings of Machine Learning
 Research*, vol. 235, pp. 27288–27298, 2024, Table 4. [Online]. Available:
 https://proceedings.mlr.press/v235/leveni24a.html.
+
+[6] A. Azzari and M. Bicego, “An Empirical Characterization of the Stability of
+Isolation Forest Results,” in *Proc. Joint IAPR Int. Workshops S+SSPR*, 2024,
+pp. 166–176, doi: 10.1007/978-3-031-80507-3_17.

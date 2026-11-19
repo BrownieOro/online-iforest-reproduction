@@ -30,25 +30,27 @@ bộ luồng và so sánh với các phương pháp trực tuyến, còn thí ng
 30% dữ liệu khởi động và dùng một baseline ngoại tuyến cố định.
 
 Tệp Annthyroid nhóm dùng, tải từ kho dữ liệu Online Isolation Forest, có 7.200
-dòng (6.666 nhãn bình thường, 534 bất thường). UCI/OpenML mô tả bản gốc gồm
-3.772 dòng train và 3.428 dòng test; hai lớp bệnh được gộp thành bất thường,
-tương ứng 534/7.200 = 7,42% [OpenML]. Bảng dữ liệu của Isolation Forest 2008 lại
-ghi 6.832 dòng cùng lúc với “classes 1, 2 (7%)”; Online Isolation Forest 2024
-lặp lại đúng cặp 6.832/7% [Liu et al., 2008; Leveni et al., 2024]. Một công bố
-khác cũng ghi Annthyroid là 7.200 dòng, 6 chiều, 7% [*Mass estimation*, 2013].
+dòng (6.666 nhãn bình thường, 534 bất thường). UCI ghi bộ ANN gồm 3.772 dòng
+train và 3.428 dòng test, tổng 7.200; hai lớp bệnh được gộp thành bất thường,
+tương ứng 534/7.200 = 7,42% [UCI/OpenML]. Bảng Isolation Forest 2008 ghi 6.832
+dòng cùng với “classes 1, 2 (7%)”; Online Isolation Forest 2024 lặp lại cặp số
+6.832/7% [Liu et al., 2008; Leveni et al., 2024]. Một công bố khác cũng ghi bản
+7.200 dòng, 6 chiều, khoảng 7% [*Mass estimation*, 2013].
 
-Đối chiếu này cho thấy 6.832 nhiều khả năng là lỗi số mẫu trong bảng benchmark
-Isolation Forest 2008 được lặp lại ở paper Online Isolation Forest, chứ không
-phải khác biệt do code cây của nhóm. Cùng bộ dữ liệu Annthyroid được ghi là
-7.200 dòng, 6 chiều, hai lớp bất thường và 7% trong công bố *Mass estimation*
-(2013) của Ting, Zhou, Liu và Tan. Azzari và Bicego cũng đối chiếu bản web 7.200
-với số 6.832 trong Isolation Forest 2008, đồng thời ghi nhận paper không nêu
-tiền xử lý. 6.832 đúng bằng 7.200 − 368, nhưng nếu bỏ lớp 368 mẫu thì chỉ còn
-166 bất thường trên 6.832 (2,43%), không khớp mức 7% và cách gộp hai lớp bất
-thường được nêu trong nguồn. Code chuẩn bị dữ liệu của nhóm chỉ bỏ cột ID, giữ
-mọi dòng; thay đổi cách khởi tạo node có thể làm đổi điểm số nhưng không thể
-làm đổi số dòng đầu vào. Có 138 dòng trùng theo đặc trưng và nhãn, nên bỏ trùng
-cũng không tạo ra 6.832. Tệp Mammography nhóm dùng có 11.183 dòng, trùng với số
+Chưa có căn cứ để nói tệp nhóm dùng sai, cũng chưa xác định được vì sao paper
+benchmark ghi 6.832. Azzari và Bicego (2024) nói họ không khôi phục được đúng
+phiên bản 6.832: bản Annthyroid trên web có 7.200 dòng, còn paper Isolation
+Forest không dẫn bước tiền xử lý tạo ra số 6.832. Nghiên cứu đó cũng dùng bản
+7.200 dòng nhưng báo tỷ lệ outlier 2%, cho thấy cách chọn nhãn bất thường có thể
+khác giữa các bản/phép đánh giá. Vì vậy nên mô tả đây là sai khác phiên bản hoặc
+tiền xử lý chưa được giải thích, không kết luận chắc là lỗi gõ trong paper.
+
+Script nhóm tải đúng tệp trong repository, kiểm tra SHA-256, chỉ bỏ cột ID và
+giữ nguyên mọi dòng. Code mô hình không thể làm thay đổi số dòng đầu vào. Có 138
+dòng trùng theo đặc trưng và nhãn, nên bỏ trùng cũng không tạo ra 6.832. Không
+nên tự xóa 368 dòng để khớp con số paper khi chưa có quy tắc lọc tương ứng; nếu
+bỏ 368 mẫu bất thường khỏi bản nhóm thì còn 166/6.832 = 2,43%, không khớp tỷ lệ
+7% mà bảng paper ghi. Tệp Mammography nhóm dùng có 11.183 dòng, trùng với số
 trong bài.
 
 Nguồn đối chiếu: UCI/OpenML, [Annthyroid](https://www.openml.org/search?id=40886&sort=runs&type=data); F. T. Liu, K. M. Ting, and Z.-H. Zhou, “Isolation Forest,” ICDM 2008, [PDF](https://cs.nju.edu.cn/zhouzh/zhouzh.files/publication/icdm08b.pdf); L. Leveni et al., “Online Isolation Forest,” ICML 2024, [PDF](https://raw.githubusercontent.com/mlresearch/v235/main/assets/leveni24a/leveni24a.pdf); K. M. Ting, G.-T. Zhou, F. T. Liu, and S. C. Tan, “Mass estimation,” *Machine Learning*, 90, 127–160, 2013, [doi:10.1007/s10994-012-5303-x](https://doi.org/10.1007/s10994-012-5303-x); A. Azzari and M. Bicego, “An Empirical Characterization of the Stability of Isolation Forest Results,” SSPR 2024, pp. 166–176, [doi:10.1007/978-3-031-80507-3_17](https://doi.org/10.1007/978-3-031-80507-3_17).
