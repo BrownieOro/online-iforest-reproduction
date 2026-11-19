@@ -18,7 +18,7 @@ BASE_URL = (
     "datasets/stationary/ifor"
 )
 
-# SHA-256 lấy từ các tệp Git LFS của tác giả đã kiểm tra.
+# SHA-256 nhóm đã kiểm tra trên các tệp Git LFS nguồn.
 DATASETS = {
     "annthyroid": {
         "filename": "Annthyroid.csv",

@@ -31,10 +31,29 @@ trên Mammography (Bảng 4). Đây chỉ là mốc tham khảo: bài báo đán
 bộ luồng và so sánh với các phương pháp trực tuyến, còn thí nghiệm của nhóm có
 30% dữ liệu khởi động và dùng một baseline ngoại tuyến cố định.
 
-Tệp Annthyroid lấy từ kho của tác giả có 7.200 dòng, trong khi Bảng 2 của bài
-báo ghi 6.832 dòng. Tệp Mammography có 11.183 dòng, trùng với số liệu trong bài.
-Script chuẩn bị dữ liệu giữ nguyên các dòng nguồn, kể cả dòng trùng lặp; chênh
-lệch của Annthyroid hiện chưa được giải quyết.
+Tệp Annthyroid nhóm dùng, tải từ kho dữ liệu Online Isolation Forest, có 7.200
+dòng (6.666 nhãn bình thường, 534 bất thường). UCI/OpenML mô tả bản gốc gồm
+3.772 dòng train và 3.428 dòng test; hai lớp bệnh được gộp thành bất thường,
+tương ứng 534/7.200 = 7,42% [OpenML]. Bảng dữ liệu của Isolation Forest 2008 lại
+ghi 6.832 dòng cùng lúc với “classes 1, 2 (7%)”; Online Isolation Forest 2024
+lặp lại đúng cặp 6.832/7% [Liu et al., 2008; Leveni et al., 2024]. Một công bố
+khác cũng ghi Annthyroid là 7.200 dòng, 6 chiều, 7% [*Mass estimation*, 2013].
+
+Đối chiếu này cho thấy 6.832 nhiều khả năng là lỗi số mẫu trong bảng benchmark
+Isolation Forest 2008 được lặp lại ở paper Online Isolation Forest, chứ không
+phải khác biệt do code cây của nhóm. Cùng bộ dữ liệu Annthyroid được ghi là
+7.200 dòng, 6 chiều, hai lớp bất thường và 7% trong công bố *Mass estimation*
+(2013) của Ting, Zhou, Liu và Tan. Azzari và Bicego cũng đối chiếu bản web 7.200
+với số 6.832 trong Isolation Forest 2008, đồng thời ghi nhận paper không nêu
+tiền xử lý. 6.832 đúng bằng 7.200 − 368, nhưng nếu bỏ lớp 368 mẫu thì chỉ còn
+166 bất thường trên 6.832 (2,43%), không khớp mức 7% và cách gộp hai lớp bất
+thường được nêu trong nguồn. Code chuẩn bị dữ liệu của nhóm chỉ bỏ cột ID, giữ
+mọi dòng; thay đổi cách khởi tạo node có thể làm đổi điểm số nhưng không thể
+làm đổi số dòng đầu vào. Có 138 dòng trùng theo đặc trưng và nhãn, nên bỏ trùng
+cũng không tạo ra 6.832. Tệp Mammography nhóm dùng có 11.183 dòng, trùng với số
+trong bài.
+
+Nguồn đối chiếu: UCI/OpenML, [Annthyroid](https://www.openml.org/search?id=40886&sort=runs&type=data); F. T. Liu, K. M. Ting, and Z.-H. Zhou, “Isolation Forest,” ICDM 2008, [PDF](https://cs.nju.edu.cn/zhouzh/zhouzh.files/publication/icdm08b.pdf); L. Leveni et al., “Online Isolation Forest,” ICML 2024, [PDF](https://raw.githubusercontent.com/mlresearch/v235/main/assets/leveni24a/leveni24a.pdf); K. M. Ting, G.-T. Zhou, F. T. Liu, and S. C. Tan, “Mass estimation,” *Machine Learning*, 90, 127–160, 2013, [doi:10.1007/s10994-012-5303-x](https://doi.org/10.1007/s10994-012-5303-x); A. Azzari and M. Bicego, “An Empirical Characterization of the Stability of Isolation Forest Results,” SSPR 2024, pp. 166–176, [doi:10.1007/978-3-031-80507-3_17](https://doi.org/10.1007/978-3-031-80507-3_17).
 
 ## Nhận xét
 
@@ -50,10 +69,10 @@ cao hơn khoảng 9,0% trên Annthyroid và 0,9% trên Mammography; không nên 
 là sai lệch tái tạo thuần túy vì protocol, số dòng Annthyroid và nhóm phương
 pháp đối chứng đều khác nhau.
 
-Đối chiếu [mã nguồn của tác giả](https://github.com/ineveLoppiliF/Online-Isolation-Forest/blob/main/OnlineIForest/onlineitree.py),
+Đối chiếu [code Online Isolation Forest gốc](https://github.com/ineveLoppiliF/Online-Isolation-Forest/blob/main/OnlineIForest/onlineitree.py),
 hệ số hiệu chỉnh cho cây nhị phân được tính theo `log(ω/η) / log(4)`, khớp với
 cách tính hiện tại trong code nhóm. Tuy vậy, khi tách một node, code nhóm mới
-tạo hai node con rỗng; mã tác giả lấy mẫu đều các điểm trong miền bao rồi dùng
+tạo hai node con rỗng; code nguồn lấy mẫu đều các điểm trong miền bao rồi dùng
 các điểm đó để khởi tạo đệ quy hai nhánh. Khác biệt này ảnh hưởng độ sâu và số
 đếm khi quên điểm, nên các chỉ số OIF ở trên chỉ mô tả lần chạy của phiên bản
 hiện tại. Cần nhóm phụ trách phần học đối chiếu, sửa và chạy lại trước khi dùng

@@ -10,7 +10,7 @@ Từ thư mục gốc repository, chạy:
 python scripts/prepare_dataset.py
 ```
 
-Script tải hai bộ dữ liệu `Annthyroid.csv` và `Mammography.csv` từ [repository Online Isolation Forest của tác giả](https://github.com/ineveLoppiliF/Online-Isolation-Forest/tree/main/datasets/stationary/ifor), sau đó lưu bản gốc trong `data/raw/` và bản đã chuẩn bị trong `data/processed/`.
+Script tải hai bộ dữ liệu `Annthyroid.csv` và `Mammography.csv` từ [repo Online Isolation Forest mà nhóm dùng làm nguồn](https://github.com/ineveLoppiliF/Online-Isolation-Forest/tree/main/datasets/stationary/ifor), sau đó lưu bản gốc trong `data/raw/` và bản đã chuẩn bị trong `data/processed/`.
 
 Lần tải đầu tiên, script kiểm tra SHA-256 của từng tệp so với checksum đã khai báo trước khi lưu. Những lần chạy sau, script dùng lại bản gốc đã lưu và kiểm tra checksum lại. Nếu tải nhầm Git LFS pointer, checksum sai, cấu trúc cột thay đổi hoặc dữ liệu không hợp lệ, script dừng với lỗi thay vì âm thầm tiếp tục.
 
