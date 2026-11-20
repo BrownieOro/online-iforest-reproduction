@@ -92,13 +92,14 @@ class SlidingIForest:
 def make_model(name, seed, args):
     """Khởi tạo mô hình và trả kèm tham số để ghi vào config.
 
-    `forest.py` gán seed `seed + i` cho cây thứ i, nên hai seed liền nhau dùng chung n_trees - 1
-    cây. Vì vậy truyền `seed * n_trees` để các seed không có cây trùng nhau.
+    `forest.py` gán seed `forest_seed * n_trees + i` cho cây thứ i. Truyền seed
+    thí nghiệm vào forest để mỗi lượt dùng một dải seed cây riêng.
     """
     if name == "oif":
-        forest_seed = seed * args.n_trees
+        forest_seed = seed
         params = {"n_trees": args.n_trees, "window_size": args.window_size, "eta": args.eta,
-                  "forest_seed": forest_seed, "tree_seeds": f"forest_seed + i, i < {args.n_trees}"}
+                  "forest_seed": forest_seed,
+                  "tree_seeds": f"forest_seed * {args.n_trees} + i, i < {args.n_trees}"}
         return OnlineIsolationForest(args.n_trees, args.window_size, args.eta, forest_seed), params
     params = {"implementation": "group SlidingIForest over sklearn.ensemble.IsolationForest",
               "n_estimators": args.n_trees, "window_size": args.window_size,

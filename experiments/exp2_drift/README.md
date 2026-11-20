@@ -7,7 +7,7 @@
 - Dữ liệu: `data/processed/insects.csv` (tạo bằng `python scripts/prepare_insects.py`), giữ nguyên thứ tự dòng, không xáo trộn, không chia tập ngẫu nhiên.
 - Prequential theo lô 100: chấm điểm lô trước, rồi mới cho mô hình học lô đó. Lô đầu chỉ để khởi động, không đánh giá.
 - Mô hình:
-  - `oif`: `OnlineIsolationForest` của nhóm, 32 cây, `window_size = 2048`, `eta = 32`. Seed rừng là `seed * 32` vì `forest.py` gán seed `seed + i` cho cây thứ i; nếu truyền thẳng `seed` thì hai seed liền nhau dùng chung 31 cây.
+  - `oif`: `OnlineIsolationForest` của nhóm, 32 cây, `window_size = 2048`, `eta = 32`. Truyền seed thí nghiệm vào forest; cây thứ `i` nhận seed `seed * n_trees + i`, nên các lượt dùng các dải seed không giao nhau.
   - `asdifor`: `IsolationForest` của scikit-learn (32 cây, `max_samples = 256`), huấn luyện lại trên 2048 mẫu gần nhất sau mỗi 2048 mẫu mới; trước khi đủ 2048 mẫu thì huấn luyện lại sau mỗi lô. Baseline do nhóm dựng, không phải `pysad.IForestASD` mà tác giả dùng.
 - Chỉ số trong `metrics.json`:
   - ROC-AUC và AP trên toàn luồng;
