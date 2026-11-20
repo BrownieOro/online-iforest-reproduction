@@ -1,4 +1,4 @@
-"""Cấu trúc dùng chung đã chốt; Phúc triển khai khởi tạo và duyệt cây."""
+"""Shared node and tree structure for Online Isolation Forest."""
 from dataclasses import dataclass
 from typing import Optional, Protocol
 import numpy as np
@@ -14,8 +14,8 @@ class Node:
     Node trong: có đủ phép chia và hai con; x[q] < p sang trái, còn lại sang phải.
     Khi gộp: xóa cả phép chia và hai con. Không giữ parent pointer.
     """
-    depth: int = 0
     mass: int = 0
+    depth: int = 0
     lower: Optional[np.ndarray] = None
     upper: Optional[np.ndarray] = None
     split_feature: Optional[int] = None
@@ -25,14 +25,15 @@ class Node:
 
     @property
     def is_leaf(self) -> bool:
-        return self.left is None and self.right is None
+        return (self.split_feature is None and self.split_value is None
+                and self.left is None and self.right is None)
 
 
 class Tree(Protocol):
     root: Node
     n_features: int
     eta: float
-    max_depth: int
+    max_depth: float
     rng: np.random.Generator
 
     def path_lengths(self, X: np.ndarray) -> np.ndarray:
@@ -41,10 +42,11 @@ class Tree(Protocol):
 
 
 class OnlineIsolationTree:
-    """Một cây dùng chung cho Phúc/Thi; Forest giữ FIFO, cây không giữ FIFO.
+    """One tree; the forest owns the shared FIFO window.
 
-    Forest truyền max_depth sau khi chốt công thức; không ngầm chọn công thức ở đây.
-    Mỗi cây nhận seed riêng từ Forest.
+    The forest supplies a floating-point depth limit and an independent seed.
+    This class owns tree traversal and delegates learning and forgetting to
+    the shared update routines.
     """
     def __init__(self, n_features: int, eta: float, max_depth: float, seed: int = 42):
         if (not isinstance(n_features, (int, np.integer)) or isinstance(n_features, (bool, np.bool_))

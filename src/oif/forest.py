@@ -1,4 +1,4 @@
-"""Online forest with a shared FIFO window and independently seeded trees."""
+"""Online forest with a shared FIFO window and disjoint deterministic tree seeds."""
 import numpy as np
 from collections import deque
 from .tree import OnlineIsolationTree, _validate
@@ -6,6 +6,13 @@ from .scoring import anomaly_scores
 
 
 class OnlineIsolationForest:
+    """Online isolation forest with one shared FIFO window.
+
+    Tree ``i`` uses seed ``forest_seed * n_trees + i``. This gives each tree a
+    reproducible random stream and separates seed ranges across consecutive
+    forest seeds.
+    """
+
     def __init__(self, n_trees=100, window_size=2048, eta=32.0, seed=42):
         if n_trees < 1 or window_size < 1 or eta <= 0:
             raise ValueError("n_trees, window_size and eta must be positive")
@@ -14,6 +21,7 @@ class OnlineIsolationForest:
         self.eta = eta
         self.seed = seed
         self._trees = None
+        self._tree_seeds = None
         self._window = deque()
         self.n_features = None
 
@@ -24,7 +32,13 @@ class OnlineIsolationForest:
             raise ValueError("X must be a non-empty finite 2D array")
         if self.n_features is None:
             self.n_features = X.shape[1]
-            self._trees = [OnlineIsolationTree(self.n_features, self.eta, self._depth_limit(), self.seed + i) for i in range(self.n_trees)]
+            self._tree_seeds = tuple(
+                self.seed * self.n_trees + i for i in range(self.n_trees)
+            )
+            self._trees = [
+                OnlineIsolationTree(self.n_features, self.eta, self._depth_limit(), tree_seed)
+                for tree_seed in self._tree_seeds
+            ]
         X = _validate(X, self.n_features)
         for x in X:
             limit = self._depth_limit(min(len(self._window) + 1, self.window_size))
@@ -37,6 +51,11 @@ class OnlineIsolationForest:
                 for tree in self._trees:
                     tree.forget_batch(old[None, :])
         return self
+
+    @property
+    def tree_seeds(self):
+        """Return the deterministic seed assigned to each tree after initialization."""
+        return self._tree_seeds
 
     def score_samples(self, X: np.ndarray) -> np.ndarray:
         """Finite (n,d) -> finite (n,), high=anomaly, no state mutation."""

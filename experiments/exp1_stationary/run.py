@@ -28,10 +28,28 @@ ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data" / "processed"
 
 
-def run_repetition(dataset: str, csv_path: Path, seed: int, output: Path,
+def _write_model_run(output: Path, config: dict, metrics: dict,
+                     row_index: np.ndarray, stream_index: np.ndarray,
+                     labels: np.ndarray, scores: np.ndarray) -> None:
+    """Write one model's local C5 artifacts, then pass them to shared logging."""
+    output.mkdir(parents=True, exist_ok=False)
+    predictions = pd.DataFrame({
+        "row_index": row_index,
+        "stream_index": stream_index,
+        "anomaly_score": scores,
+        "label": labels,
+    })
+    predictions.to_csv(output / "predictions.csv", index=False)
+    for name, value in (("config", config), ("metrics", metrics)):
+        (output / f"{name}.json").write_text(
+            json.dumps(value, indent=2, allow_nan=False), encoding="utf-8")
+    log_run(config, metrics, output)
+
+
+def run_repetition(dataset: str, csv_path: Path, seed: int, output_root: Path,
                    batch_size: int, warmup_fraction: float,
                    n_trees: int, window_size: int, eta: float) -> dict:
-    """Run one paired warm-up/prequential evaluation and persist its artifacts."""
+    """Run a paired evaluation and save separate model/dataset/seed artifacts."""
     frame = pd.read_csv(csv_path)
     if "label" not in frame or frame.shape[1] < 2:
         raise ValueError(f"{csv_path} must contain numeric features and a label column")
@@ -48,6 +66,8 @@ def run_repetition(dataset: str, csv_path: Path, seed: int, output: Path,
     warmup = max(2, min(len(X) - 2, int(len(X) * warmup_fraction)))
     X_initial, X_stream = X[:warmup], X[warmup:]
     y_stream = y[warmup:]
+    # The forest derives the disjoint tree seed range from this run seed.
+    oif_forest_seed = seed
 
     # Both methods see the same initial observations and the same subsequent
     # order. Prepared inputs are finite, numeric and used without scaling.
@@ -61,7 +81,7 @@ def run_repetition(dataset: str, csv_path: Path, seed: int, output: Path,
     baseline_score_seconds = time.perf_counter() - started
 
     oif = OnlineIsolationForest(
-        n_trees=n_trees, window_size=window_size, eta=eta, seed=seed,
+        n_trees=n_trees, window_size=window_size, eta=eta, seed=oif_forest_seed,
     )
     started = time.perf_counter()
     oif.learn_batch(X_initial)
@@ -81,36 +101,21 @@ def run_repetition(dataset: str, csv_path: Path, seed: int, output: Path,
 
     if len(np.unique(y_stream)) != 2:
         raise ValueError(f"Seed {seed} leaves only one class after warm-up")
-    metrics = {
-        "n_total": int(len(X)), "n_warmup": int(warmup),
-        "n_evaluated": int(len(X_stream)),
-        "baseline_roc_auc": float(roc_auc_score(y_stream, baseline_scores)),
-        "baseline_average_precision": float(average_precision_score(y_stream, baseline_scores)),
-        "baseline_fit_seconds": float(baseline_fit_seconds),
-        "baseline_score_seconds": float(baseline_score_seconds),
-        "oif_roc_auc": float(roc_auc_score(y_stream, oif_scores)),
-        "oif_average_precision": float(average_precision_score(y_stream, oif_scores)),
-        "oif_warmup_seconds": float(oif_warmup_seconds),
-        "oif_update_seconds": float(oif_update_seconds),
-        "oif_score_seconds": float(oif_score_seconds),
-        "baseline_total_seconds": float(baseline_fit_seconds + baseline_score_seconds),
-        "oif_total_seconds": float(oif_warmup_seconds + oif_update_seconds + oif_score_seconds),
-    }
     original_rows = order[warmup:]
-    predictions = pd.DataFrame({
-        "row_index": original_rows,
-        "stream_index": np.arange(warmup, len(X)),
-        "label": y_stream,
-        "baseline_anomaly_score": baseline_scores,
-        "oif_anomaly_score": oif_scores,
-    })
-    output.mkdir(parents=True, exist_ok=False)
-    predictions.to_csv(output / "predictions.csv", index=False)
+    stream_indices = np.arange(warmup, len(X))
+    model_dirs = {
+        "isolation_forest": output_root / dataset / "isolation_forest" / f"seed-{seed}",
+        "online_isolation_forest": output_root / dataset / "online_isolation_forest" / f"seed-{seed}",
+    }
+    existing = [str(path) for path in model_dirs.values() if path.exists()]
+    if existing:
+        raise FileExistsError(f"Run output already exists: {', '.join(existing)}")
+
     git_dirty = bool(subprocess.run(
         ["git", "status", "--porcelain"], cwd=ROOT, check=True,
         capture_output=True, text=True,
     ).stdout.strip())
-    config = {
+    common_config = {
         "experiment": "stationary_prequential",
         "tags": ["reproduction", "stationary"],
         "git_commit": subprocess.run(
@@ -118,24 +123,112 @@ def run_repetition(dataset: str, csv_path: Path, seed: int, output: Path,
             capture_output=True, text=True,
         ).stdout.strip(),
         "git_worktree_dirty": git_dirty,
-        "oif_implementation_status": "experimental; formula and learning/scoring edge cases still need team review",
         "dataset": dataset,
         "dataset_sha256": hashlib.sha256(csv_path.read_bytes()).hexdigest(),
-        "protocol": "shared seeded shuffle; first 30% warm-up; score each later batch before OIF update; frozen sklearn baseline",
-        "seed": seed, "batch_size": batch_size,
-        "warmup_fraction": warmup_fraction,
-        "oif": {"n_trees": n_trees, "window_size": window_size, "eta": eta},
-        "baseline": {"model": "sklearn.ensemble.IsolationForest", "n_estimators": 100,
-                     "contamination": "auto", "preprocessing": "none; prepared CSV is finite and numeric"},
-        "python": platform.python_version(), "numpy": np.__version__,
-        "pandas": pd.__version__, "sklearn": sklearn.__version__,
-        "known_deviation": "Paper uses 30 shuffled runs and batches of 100; this group's protocol adds a 30% warm-up and freezes the offline baseline for a paired prequential comparison.",
+        "seed": seed,
+        "random_seeds": {
+            "stream_permutation": seed,
+            "baseline_model": seed,
+            "oif_forest": oif_forest_seed,
+            "oif_tree_seed_strategy": "forest_seed * n_trees + tree_index",
+            "oif_tree_seeds": list(oif.tree_seeds),
+        },
+        "preprocessing": {
+            "features": "numeric columns except label; used without scaling or imputation",
+            "fit_scope": "none; prepared CSV is validated as finite before evaluation",
+            "labels": "used only for metrics and predictions, never passed to either model",
+        },
+        "evaluation": {
+            "order": "numpy.random.default_rng(seed).permutation(n_rows); same permutation for both models",
+            "warmup_fraction": warmup_fraction,
+            "warmup_rows": int(warmup),
+            "batch_size": batch_size,
+            "scoring_order": "score each post-warmup batch before updating OIF with that batch",
+            "baseline_order": "fit once on the warm-up rows, then score all post-warmup rows in stream order",
+        },
+        "versions": {
+            "python": platform.python_version(),
+            "numpy": np.__version__,
+            "pandas": pd.__version__,
+            "scikit_learn": sklearn.__version__,
+        },
+        "known_deviation": "The paper uses 30 shuffled runs and batches of 100; this protocol adds a 30% warm-up and freezes the offline baseline for a paired prequential comparison.",
     }
-    for name, value in (("config", config), ("metrics", metrics)):
-        (output / f"{name}.json").write_text(
-            json.dumps(value, indent=2, allow_nan=False), encoding="utf-8")
-    log_run(config, metrics, output)
-    return {"dataset": dataset, "seed": seed, **metrics}
+
+    baseline_auc = float(roc_auc_score(y_stream, baseline_scores))
+    baseline_ap = float(average_precision_score(y_stream, baseline_scores))
+    baseline_total = float(baseline_fit_seconds + baseline_score_seconds)
+    baseline_metrics = {
+        "n_total": int(len(X)), "n_warmup": int(warmup),
+        "n_evaluated": int(len(X_stream)),
+        "roc_auc": baseline_auc,
+        "average_precision": baseline_ap,
+        "training_time_seconds": float(baseline_fit_seconds),
+        "scoring_time_seconds": float(baseline_score_seconds),
+        "total_time_seconds": baseline_total,
+    }
+    baseline_config = {
+        **common_config,
+        "model": "sklearn.ensemble.IsolationForest",
+        "parameters": {"n_estimators": 100, "contamination": "auto", "random_state": seed,
+                       "n_jobs": 1},
+        "timing": {
+            "clock": "time.perf_counter", "unit": "seconds",
+            "training": "fit on warm-up rows",
+            "scoring": "score all post-warm-up rows; excludes model fitting",
+        },
+    }
+
+    oif_auc = float(roc_auc_score(y_stream, oif_scores))
+    oif_ap = float(average_precision_score(y_stream, oif_scores))
+    oif_training = float(oif_warmup_seconds + oif_update_seconds)
+    oif_total = float(oif_training + oif_score_seconds)
+    oif_metrics = {
+        "n_total": int(len(X)), "n_warmup": int(warmup),
+        "n_evaluated": int(len(X_stream)),
+        "roc_auc": oif_auc,
+        "average_precision": oif_ap,
+        "training_time_seconds": oif_training,
+        "warmup_training_time_seconds": float(oif_warmup_seconds),
+        "update_time_seconds": float(oif_update_seconds),
+        "scoring_time_seconds": float(oif_score_seconds),
+        "total_time_seconds": oif_total,
+    }
+    oif_config = {
+        **common_config,
+        "model": "OnlineIsolationForest",
+        "parameters": {
+            "n_trees": n_trees, "window_size": window_size, "eta": eta,
+            "seed": oif_forest_seed, "evaluation_seed": seed,
+        },
+        "timing": {
+            "clock": "time.perf_counter", "unit": "seconds",
+            "training": "warm-up learning plus online updates after each scored batch",
+            "scoring": "score each post-warm-up batch before updating it",
+        },
+    }
+
+    _write_model_run(model_dirs["isolation_forest"], baseline_config, baseline_metrics,
+                     original_rows, stream_indices, y_stream, baseline_scores)
+    _write_model_run(model_dirs["online_isolation_forest"], oif_config, oif_metrics,
+                     original_rows, stream_indices, y_stream, oif_scores)
+
+    return {
+        "dataset": dataset, "seed": seed,
+        "n_total": int(len(X)), "n_warmup": int(warmup),
+        "n_evaluated": int(len(X_stream)),
+        "baseline_roc_auc": baseline_auc,
+        "baseline_average_precision": baseline_ap,
+        "baseline_fit_seconds": float(baseline_fit_seconds),
+        "baseline_score_seconds": float(baseline_score_seconds),
+        "baseline_total_seconds": baseline_total,
+        "oif_roc_auc": oif_auc,
+        "oif_average_precision": oif_ap,
+        "oif_warmup_seconds": float(oif_warmup_seconds),
+        "oif_update_seconds": float(oif_update_seconds),
+        "oif_score_seconds": float(oif_score_seconds),
+        "oif_total_seconds": oif_total,
+    }
 
 
 def main() -> None:
@@ -150,6 +243,8 @@ def main() -> None:
     parser.add_argument("--window-size", type=int, default=2048)
     parser.add_argument("--eta", type=float, default=32.0)
     parser.add_argument("--output", type=Path, default=ROOT / "results" / "raw" / "stationary")
+    parser.add_argument("--summary-output", type=Path,
+                        default=ROOT / "results" / "stationary-summary.csv")
     args = parser.parse_args()
     if args.runs < 1 or args.batch_size < 1 or not 0 < args.warmup_fraction < 1:
         parser.error("runs/batch-size must be positive and warmup-fraction must be in (0, 1)")
@@ -160,8 +255,7 @@ def main() -> None:
         if not path.is_file():
             raise FileNotFoundError(f"Missing {path}. Run: python scripts/prepare_dataset.py")
         for seed in range(args.seed_start, args.seed_start + args.runs):
-            run_dir = args.output / dataset / f"seed-{seed}"
-            record = run_repetition(dataset, path, seed, run_dir, args.batch_size,
+            record = run_repetition(dataset, path, seed, args.output, args.batch_size,
                                     args.warmup_fraction, args.n_trees,
                                     args.window_size, args.eta)
             records.append(record)
@@ -172,7 +266,8 @@ def main() -> None:
     results.to_csv(args.output / "runs.csv", index=False)
     numeric = [c for c in results.columns if c not in ("dataset", "seed")]
     summary = results.groupby("dataset")[numeric].median().reset_index()
-    summary.to_csv(ROOT / "results" / "stationary-summary.csv", index=False)
+    args.summary_output.parent.mkdir(parents=True, exist_ok=True)
+    summary.to_csv(args.summary_output, index=False)
     summary.to_json(args.output / "summary.json", orient="records", indent=2)
     print("Median summary:")
     print(summary.to_string(index=False))

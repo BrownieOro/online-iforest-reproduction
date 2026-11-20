@@ -15,6 +15,9 @@ Mỗi seed tạo một thứ tự dữ liệu xáo trộn dùng chung cho cả h
 - Báo cáo ROC-AUC, average precision (AP), thời gian huấn luyện/cập nhật/chấm
   điểm và trung vị qua 30 lần chạy. Mô hình chỉ nhận các cột đặc trưng đã chuẩn
   bị; không nhận nhãn.
+- Seed rừng OIF bằng seed thí nghiệm. Cây thứ `i` nhận seed
+  `seed_rừng × n_trees + i`; cấu hình từng lượt lưu seed xáo trộn, seed
+  baseline, seed rừng và seed của từng cây.
 
 Đây là protocol theo luồng do nhóm thiết kế, không phải tái tạo nguyên trạng
 protocol stationary trong bài báo. Bài báo xáo trộn và xử lý toàn bộ luồng theo
@@ -28,27 +31,44 @@ Từ thư mục gốc của repo:
 
 ```powershell
 python scripts/prepare_dataset.py
-python experiments/exp1_stationary/run.py
+python experiments/exp1_stationary/run.py --output results/raw/stationary-seedsequence
+python experiments/exp1_stationary/plot_summary.py --runs results/raw/stationary-seedsequence/runs.csv
 ```
 
-Mỗi bộ dữ liệu và seed có một thư mục trong `results/raw/stationary/`, gồm
-`config.json`, `metrics.json` và `predictions.csv`. Script cũng tạo `runs.csv`
-và `results/stationary-summary.csv`. Git bỏ qua dữ liệu đã chuẩn bị và kết quả
-thô; giữ lại thư mục này khi cần kiểm tra các lần chạy.
+`--output` phải trỏ tới thư mục chưa chứa các run đó; dùng một thư mục tên mới
+khi chạy lại để không ghi đè artifacts cũ.
+
+Mỗi bộ dữ liệu, mô hình và seed có thư mục riêng dưới đường dẫn `--output`, ví dụ
+`results/raw/stationary-seedsequence/<dataset>/<model>/seed-<n>/`. Mỗi thư mục chứa
+`config.json`, `metrics.json` và `predictions.csv` với các cột
+`row_index, stream_index, anomaly_score, label`. Cấu hình ghi commit Git, trạng
+thái worktree, tham số, phiên bản thư viện, tiền xử lý, thứ tự đánh giá và cách
+đo thời gian; metrics dùng đơn vị giây cho thời gian. Script cũng tạo `runs.csv`
+và `results/stationary-summary.csv` để tổng hợp hai phương pháp theo seed (có thể
+đổi bằng `--summary-output`).
+`plot_summary.py` tạo hai biểu đồ median kèm khoảng tứ phân vị Q1–Q3 từ `runs.csv`;
+biểu đồ thời gian dùng trục log để thể hiện rõ cả hai phương pháp. Git bỏ qua dữ
+liệu đã chuẩn bị và kết quả thô; giữ lại thư mục này khi cần kiểm tra các lần chạy.
 
 ## Tải các lần chạy lên W&B
 
-W&B là tùy chọn khi chạy cục bộ. Để tải các kết quả đã có lên mà không chạy lại
-mô hình, cần cài phần phụ thuộc W&B, đăng nhập và cấu hình project/entity trong
-`.env`; sau đó đặt `WANDB_MODE=online` và chạy:
+Các kết quả cục bộ có thể tải lên mà không chạy lại mô hình. Cài phần phụ thuộc,
+sao chép `.env.example` thành `.env`, đặt `WANDB_MODE=online` và project cần dùng;
+nếu project thuộc team, đặt thêm `WANDB_ENTITY`. Sau đó đăng nhập cục bộ bằng
+`wandb login` (hoặc lưu `WANDB_API_KEY` trong `.env`, được Git bỏ qua):
 
 ```powershell
-python experiments/exp1_stationary/log_runs.py
+python -m pip install -e ".[wandb]"
+wandb login
+python experiments/exp1_stationary/log_runs.py --runs-dir results/raw/stationary-seedsequence
 ```
 
-Mỗi lần chạy sẽ thành một W&B run riêng, có tag `reproduction` và `stationary`.
-Không đưa khóa API vào Git. Hiện môi trường chưa có cấu hình W&B nên chưa tạo
-được đường dẫn run trực tuyến.
+Mỗi bộ `(dataset, model, seed)` trở thành một W&B run riêng, có tag
+`reproduction` và `stationary`. Script không chạy lại mô hình; sau mỗi lần tải
+thành công, lưu URL vào `results/stationary-wandb-links.csv` và cập nhật số run,
+link project và manifest trong `results/stationary.md` cùng `slides/phase2-phuc.md`.
+Nếu chạy tiếp sau khi bị gián đoạn, các bộ đã có trong manifest sẽ được bỏ qua.
+Không đưa khóa API vào Git.
 
 ## Mốc tham khảo từ bài báo
 
