@@ -31,15 +31,15 @@ Từ thư mục gốc của repo:
 
 ```powershell
 python scripts/prepare_dataset.py
-python experiments/exp1_stationary/run.py --output results/raw/stationary-seedsequence
-python experiments/exp1_stationary/plot_summary.py --runs results/raw/stationary-seedsequence/runs.csv
+python experiments/exp1_stationary/run.py --output results/raw/stationary-f4
+python experiments/exp1_stationary/plot_summary.py --runs results/raw/stationary-f4/runs.csv
 ```
 
 `--output` phải trỏ tới thư mục chưa chứa các run đó; dùng một thư mục tên mới
 khi chạy lại để không ghi đè artifacts cũ.
 
 Mỗi bộ dữ liệu, mô hình và seed có thư mục riêng dưới đường dẫn `--output`, ví dụ
-`results/raw/stationary-seedsequence/<dataset>/<model>/seed-<n>/`. Mỗi thư mục chứa
+`results/raw/stationary-f4/<dataset>/<model>/seed-<n>/`. Mỗi thư mục chứa
 `config.json`, `metrics.json` và `predictions.csv` với các cột
 `row_index, stream_index, anomaly_score, label`. Cấu hình ghi commit Git, trạng
 thái worktree, tham số, phiên bản thư viện, tiền xử lý, thứ tự đánh giá và cách
@@ -60,7 +60,7 @@ nếu project thuộc team, đặt thêm `WANDB_ENTITY`. Sau đó đăng nhập 
 ```powershell
 python -m pip install -e ".[wandb]"
 wandb login
-python experiments/exp1_stationary/log_runs.py --runs-dir results/raw/stationary-seedsequence
+python experiments/exp1_stationary/log_runs.py --runs-dir results/raw/stationary-f4
 ```
 
 Mỗi bộ `(dataset, model, seed)` trở thành một W&B run riêng, có tag
