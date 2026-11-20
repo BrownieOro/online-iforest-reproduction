@@ -2,28 +2,28 @@
 
 **Thực hiện:** 2 bộ dữ liệu × 2 phương pháp × 30 seed (0–29) = 120 run. Mỗi run có
 `config.json`, `metrics.json` và `predictions.csv`; tổng cộng 120 tệp của mỗi loại
-được lưu tại [`results/raw/stationary-seedblock/`](raw/stationary-seedblock/).
+được lưu tại [`results/raw/stationary-f4/`](raw/stationary-f4/).
 Thư mục kết quả thô được Git bỏ qua. Bảng tổng hợp có tại
 [`stationary-summary.csv`](stationary-summary.csv); số liệu từng seed nằm trong
-`results/raw/stationary-seedblock/runs.csv`.
+`results/raw/stationary-f4/runs.csv`.
 
 <!-- W&B status begin -->
 **W&B:** 0/120 run được tải lên. Lúc hoàn tất các lượt chạy, chưa có tài khoản/API
 key W&B để xác thực. Các tệp kết quả vẫn được lưu cục bộ.
 <!-- W&B status end -->
 
-Các `config.json` ghi Git commit `32d594f47fb7ada4b0cf478ec6b6b783dff9ef7d`,
-chứa L1 (`ceeaed8`) và F1 (`6ac25e3`), cùng `git_worktree_dirty=true`. Seed cây
-OIF cho run seed `s` nằm trong khoảng `32 × s` đến `32 × s + 31`; các khoảng
-seed của 30 run không giao nhau.
+Các `config.json` ghi Git commit `54f1c48d4213cafbc7b7d68d37c6c4e54dd8bc30`,
+chứa L1 (`ceeaed8`), F1 (`6ac25e3`) và F4; `git_worktree_dirty=false`. Với run
+seed `s`, forest nhận seed `s`, cây thứ `i` nhận `32 × s + i`; các dải seed
+không giao nhau giữa 30 run.
 
 ## Giao thức
 
 Mỗi seed tạo một hoán vị mẫu dùng chung cho Online Isolation Forest (OIF) và
 Isolation Forest của scikit-learn. 30% đầu làm warm-up; phần còn lại được chấm
 theo lô 100 mẫu. OIF chấm điểm trước rồi cập nhật từng lô, dùng 32 cây, cửa sổ
-`ω=2048` và `η=32`. Seed rừng OIF là `32 × seed`; cây thứ `i` dùng seed
-`32 × seed + i`. Baseline scikit-learn dùng 100 cây, fit một lần trên warm-up
+`ω=2048` và `η=32`. Forest nhận seed thử nghiệm `s`; cây thứ `i` dùng seed
+`32 × s + i`. Baseline scikit-learn dùng 100 cây, fit một lần trên warm-up
 và giữ cố định. Nhãn chỉ được dùng để tính ROC-AUC và average precision (AP).
 
 | Bộ dữ liệu | Tổng dòng | Warm-up | Dòng được chấm mỗi seed | Seed |
@@ -38,19 +38,19 @@ fit/cập nhật và chấm điểm, đơn vị giây.
 
 | Bộ dữ liệu | Phương pháp | Run | ROC-AUC median [Q1; Q3] | AP median | Tổng thời gian median (s) | W&B (đã tải/tổng) |
 |---|---|---:|---:|---:|---:|---:|
-| Annthyroid | OIF | 30 | 0,7468 [0,7117; 0,7928] | 0,2757 | 15,0283 | 0/30 |
-| Annthyroid | Isolation Forest (scikit-learn) | 30 | 0,8187 [0,8044; 0,8338] | 0,3077 | 0,4776 | 0/30 |
-| Mammography | OIF | 30 | 0,8805 [0,8675; 0,8913] | 0,2344 | 34,4144 | 0/30 |
-| Mammography | Isolation Forest (scikit-learn) | 30 | 0,8633 [0,8517; 0,8698] | 0,1920 | 0,5987 | 0/30 |
+| Annthyroid | OIF | 30 | 0,7468 [0,7117; 0,7928] | 0,2757 | 6,6397 | 0/30 |
+| Annthyroid | Isolation Forest (scikit-learn) | 30 | 0,8187 [0,8044; 0,8338] | 0,3077 | 0,1775 | 0/30 |
+| Mammography | OIF | 30 | 0,8805 [0,8675; 0,8913] | 0,2344 | 10,9845 | 0/30 |
+| Mammography | Isolation Forest (scikit-learn) | 30 | 0,8633 [0,8517; 0,8698] | 0,1920 | 0,1971 | 0/30 |
 
 ## Chênh lệch giữa hai phương pháp
 
 - **Annthyroid:** ROC-AUC OIF thấp hơn 0,0719 (0,7468 so với 0,8187); AP thấp hơn
-  0,0320 (0,2757 so với 0,3077). Tổng thời gian trung vị là 15,0283 giây với OIF
-  và 0,4776 giây với baseline.
+  0,0320 (0,2757 so với 0,3077). Tổng thời gian trung vị là 6,6397 giây với OIF
+  và 0,1775 giây với baseline.
 - **Mammography:** ROC-AUC OIF cao hơn 0,0173 (0,8805 so với 0,8633); AP cao hơn
-  0,0424 (0,2344 so với 0,1920). Tổng thời gian trung vị là 34,4144 giây với OIF
-  và 0,5987 giây với baseline.
+  0,0424 (0,2344 so với 0,1920). Tổng thời gian trung vị là 10,9845 giây với OIF
+  và 0,1971 giây với baseline.
 
 OIF cập nhật 32 cây xuyên suốt phần đánh giá; baseline chỉ fit trên warm-up rồi
 giữ cố định. Các thời gian trên đo hai quy trình này.

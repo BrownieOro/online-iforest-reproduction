@@ -4,7 +4,7 @@ Mỗi slide có nội dung, hình/bảng, speaker notes và nguồn IEEE. Ký hi
 code), `k` là độ sâu, `R` là miền bao, `τ` là số cây, `ω` là cỡ cửa sổ. Thí nghiệm gồm 120 run
 (2 bộ dữ liệu × 2 phương pháp ×
 30 seed); 120 `config.json`, 120 `metrics.json` và 120 `predictions.csv` được lưu tại
-[`results/raw/stationary-seedblock/`](../results/raw/stationary-seedblock/).
+[`results/raw/stationary-f4/`](../results/raw/stationary-f4/).
 Kết quả tổng hợp nằm ở [`results/stationary.md`](../results/stationary.md) và
 [`results/stationary-summary.csv`](../results/stationary-summary.csv).
 
@@ -234,12 +234,12 @@ Research*, vol. 12, pp. 2825–2830, 2011.
 
 | Bộ dữ liệu | Phương pháp | ROC-AUC nhóm, median [Q1; Q3] | AP median | Tổng thời gian median (s) |
 |---|---|---:|---:|---:|
-| Annthyroid | OIF | 0,747 [0,712; 0,793] | 0,276 | 15,03 |
-| Annthyroid | Isolation Forest (scikit-learn) | 0,819 [0,804; 0,834] | 0,308 | 0,48 |
-| Mammography | OIF | 0,881 [0,867; 0,891] | 0,234 | 34,41 |
-| Mammography | Isolation Forest (scikit-learn) | 0,863 [0,852; 0,870] | 0,192 | 0,60 |
+| Annthyroid | OIF | 0,747 [0,712; 0,793] | 0,276 | 6,64 |
+| Annthyroid | Isolation Forest (scikit-learn) | 0,819 [0,804; 0,834] | 0,308 | 0,18 |
+| Mammography | OIF | 0,881 [0,867; 0,891] | 0,234 | 10,98 |
+| Mammography | Isolation Forest (scikit-learn) | 0,863 [0,852; 0,870] | 0,192 | 0,20 |
 
-*Bảng 4 oIFOR: Annthyroid 0,685; Mammography 0,854 [1]. Run cục bộ: [`stationary-seedblock`](../results/raw/stationary-seedblock/).*
+*Bảng 4 oIFOR: Annthyroid 0,685; Mammography 0,854 [1]. Run cục bộ: [`stationary-f4`](../results/raw/stationary-f4/).*
 
 <!-- W&B status begin -->
 **W&B:** 0/120 run được tải lên; hiện chưa có tài khoản/API key để xác thực.
@@ -262,9 +262,9 @@ Trong 30 seed, ROC-AUC trung vị của OIF và Isolation Forest lần lượt l
 
 So với ROC-AUC oIFOR trong Bảng 4 (0,685 Annthyroid; 0,854 Mammography), kết quả OIF nhóm chênh +0,0618 (+9,02%) và +0,0265 (+3,10%). Thí nghiệm nhóm dùng warm-up 30%, baseline cố định và 7.200 dòng Annthyroid; bài báo dùng toàn luồng, năm phương pháp trực tuyến và báo 6.832 dòng Annthyroid.
 
-Thời gian tổng trung vị là 15,0283 giây (OIF) và 0,4776 giây (baseline) trên Annthyroid; 34,4144 giây và 0,5987 giây trên Mammography. Baseline fit một lần trên warm-up; OIF cập nhật 32 cây trong quá trình đánh giá. Thời gian được tính bằng giây và gồm fit/cập nhật cùng chấm điểm.
+Thời gian tổng trung vị là 6,6397 giây (OIF) và 0,1775 giây (baseline) trên Annthyroid; 10,9845 giây và 0,1971 giây trên Mammography. Baseline fit một lần trên warm-up; OIF cập nhật 32 cây trong quá trình đánh giá. Thời gian được tính bằng giây và gồm fit/cập nhật cùng chấm điểm.
 
-Runner dùng 30 seed (0–29); seed rừng là `32 × seed` và cây thứ `i` dùng `32 × seed + i`. Các tệp `config.json` ghi commit `32d594f` (có L1 `ceeaed8` và F1 `6ac25e3`) cùng `git_worktree_dirty=true`. Mỗi run có `config.json`, `metrics.json`, `predictions.csv`; tổng cộng 120 tệp của mỗi loại được lưu ở `results/raw/stationary-seedblock/`.
+Runner dùng 30 seed (0–29); forest nhận seed thử nghiệm `s`, cây thứ `i` dùng seed `32 × s + i`. Các tệp `config.json` ghi commit `54f1c48` (có L1 `ceeaed8`, F1 `6ac25e3` và F4) cùng `git_worktree_dirty=false`. Mỗi run có `config.json`, `metrics.json`, `predictions.csv`; tổng cộng 120 tệp của mỗi loại được lưu ở `results/raw/stationary-f4/`. AUC và AP median trùng lượt seedblock trước do lượt đó đã dùng cùng dải seed; lượt này chốt phép cấp seed trong forest và đo lại thời gian.
 
 [1] F. Leveni, G. Weigert Cassales, B. Pfahringer, A. Bifet, and G. Boracchi, "Online Isolation
 Forest," in *Proc. 41st Int. Conf. Machine Learning*, PMLR, vol. 235, pp. 27288–27298, 2024.
