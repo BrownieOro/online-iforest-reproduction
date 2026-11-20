@@ -187,8 +187,8 @@ Forest," in *Proc. 41st Int. Conf. Machine Learning*, PMLR, vol. 235, pp. 27288�
 | 5 | 0,665 [0,614; 0,716] | 0,664 [0,660; 0,680] | 0,420 | 0,391 |
 | 6 | 0,760 [0,749; 0,791] | 0,754 [0,744; 0,756] | 0,080 | 0,076 |
 
-*ROC-AUC: trung vị [Q1; Q3] qua 5 seed; AP: trung vị.* W&B: lượt d = 33 chờ tải lên; lượt d = 10 có
-link ở slide 7.2c.
+*ROC-AUC: trung vị [Q1; Q3] qua 5 seed; AP: trung vị.* W&B: lượt d = 33 chưa có run; lượt d = 10 có
+link ở slide 7.2c. Hình 7 của bài báo không kèm bảng số, nên chỉ so được hình dạng đường cong (slide 7.2b).
 
 **Hình minh họa / Biểu đồ**
 
@@ -292,7 +292,7 @@ Forest," in *Proc. 41st Int. Conf. Machine Learning*, PMLR, vol. 235, pp. 27288�
 
 - Theo seed (d = 33): OIF dao động rộng gấp ~9 lần asdIFOR; đoạn 5 rộng nhất (0,536–0,745)
 - Thời gian d = 33: OIF 182,9 s, asdIFOR 10,2 s; chậm ~18× (Python thuần so với Cython)
-- W&B d = 10 — OIF: [s0](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/lpprt64h)·[s1](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/5nsp99kc)·[s2](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/bkkazl0o)·[s3](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/zrvo8y72)·[s4](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/gq0qkj76) | asdIFOR: [s0](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/pqz5mwjq)·[s1](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/8w9ds7kg)·[s2](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/nijtz9s7)·[s3](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/5b66rbfq)·[s4](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/zkiiyp3g); d = 33: chờ tải lên
+- W&B d = 10 — OIF: [s0](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/lpprt64h)·[s1](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/5nsp99kc)·[s2](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/bkkazl0o)·[s3](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/zrvo8y72)·[s4](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/gq0qkj76) | asdIFOR: [s0](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/pqz5mwjq)·[s1](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/8w9ds7kg)·[s2](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/nijtz9s7)·[s3](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/5b66rbfq)·[s4](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/zkiiyp3g); d = 33: chưa có run
 
 **Hình minh họa / Biểu đồ**
 
