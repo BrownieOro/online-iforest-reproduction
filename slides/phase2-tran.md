@@ -30,8 +30,11 @@ Code tác giả học trước rồi chấm cùng lô [2], nên điểm một m�
 khác biệt protocol quan trọng khi đối chiếu kết quả.
 
 Bài báo ghi INSECTS có 33 đặc trưng [1], nhưng script thí nghiệm của tác giả chỉ lấy 10 cột đầu [2].
-Nhóm chạy cả hai cấu hình với cùng code, cùng seed 0–4, chỉ khác số cột. Mỗi seed rừng được cấp
-`seed × 32` để hai seed khác nhau không dùng chung cây nào.
+Nhóm chạy cả hai cấu hình với cùng quy tắc đánh giá và seed 0–4, khác số cột. Các lượt lịch sử
+truyền `32 × s` vào Forest cũ để cây thứ `i` nhận seed `32 × s + i`. Sau bản sửa F4,
+runner truyền trực tiếp `s`, Forest tự tính `32 × s + i`; không nhân thêm ở runner.
+Các dải seed cây không chồng lấn giữa các seed thử nghiệm. Chi tiết công thức và giao diện:
+[`docs/cong-thuc-oif.md`](../docs/cong-thuc-oif.md).
 
 Baseline asdIFOR dùng `IsolationForest` của scikit-learn [3] với 32 cây, huấn luyện lại trên 2.048 mẫu
 gần nhất sau mỗi 2.048 mẫu mới, theo ý tưởng cửa sổ rời của IForestASD. Tác giả dùng bản trong PySAD,
@@ -106,10 +109,9 @@ Forest," in *Proc. 41st Int. Conf. Machine Learning*, PMLR, vol. 235, pp. 27288�
 
 | Bằng chứng | Kết quả của nhóm | Giới hạn |
 |---|---|---|
-| Ổn định, 30 seed | OIF 0,725 (Annthyroid), 0,870 (Mammography); bài báo 0,685 và 0,854 (+5,8%, +1,9%) | Protocol khác; Annthyroid 7.200 dòng; các seed dùng chung cây; chưa có W&B |
+| Ổn định, 30 seed | OIF 0,7468 (Annthyroid), 0,8805 (Mammography); baseline cố định 0,8187 và 0,8633 | Warm-up 30%; Annthyroid 7.200 dòng; bản `stationary-f4`, dải seed không chồng lấn; W&B 0/120 |
 | INSECTS d = 10, 5 seed | OIF 0,728 [0,722; 0,788]; asdIFOR 0,786 ([các run](../results/drift-fixed-10.md)) | Chấm trước học; baseline không phải PySAD |
 | INSECTS d = 33, 5 seed | OIF 0,706 [0,696; 0,744]; asdIFOR 0,718 | Chênh lệch nhỏ hơn dao động theo seed của OIF; chưa có W&B |
-| Thời gian (d = 33) | OIF 182,9 s, asdIFOR 10,2 s | Python thuần so với Cython; bài báo đo qua PySAD |
 | Cửa sổ `ω` (d = 10) | ROC-AUC 0,665 → 0,716 khi `ω` 256 → 8.192 | 1 seed; chưa có W&B |
 
 Repo: [online-iforest-reproduction](https://github.com/BrownieOro/online-iforest-reproduction) · W&B:
@@ -122,22 +124,32 @@ Bảng là trọng tâm; không dùng hình riêng.
 **Speaker notes**
 
 Đây là các kết quả có thể truy vết, không phải toàn bộ tái lập bài báo. Kết luận chính có ba ý. Thứ
-nhất, bản triển khai OIF của nhóm đạt chất lượng cùng mức với số của bài báo trên hai bộ dữ liệu ổn định,
-nhưng thấp hơn baseline scikit-learn trên Annthyroid. Thứ hai, trên INSECTS với d = 33, OIF và asdIFOR đổi
+nhất, stationary sau sửa sinh mẫu node con và F4 đạt ROC-AUC trung vị 0,7468 trên Annthyroid,
+0,8805 trên Mammography; baseline scikit-learn cố định đạt 0,8187 và 0,8633. OIF thấp hơn baseline
+trên Annthyroid, cao hơn trên Mammography. So với Bảng 4 paper (0,685 và 0,854), chênh lệch
+là +0,0618 và +0,0265 AUC; đây là đối chiếu tham khảo vì dữ liệu/phạm vi đánh giá khác.
+Thứ hai, trên INSECTS với d = 33, OIF và baseline cửa sổ đổi
 chất lượng cùng chiều ở cả 5 mốc thay đổi, và chênh lệch trung vị nhỏ hơn dao động theo seed của OIF,
-còn với d = 10, asdIFOR cao hơn. Thứ ba, bản OIF Python thuần của nhóm chậm hơn asdIFOR dùng
-scikit-learn, trái với xếp hạng thời gian của bài báo; nguyên nhân chủ yếu là cách cài đặt, nên kết quả
-này không bác bỏ nhận định về tốc độ của tác giả.
+còn với d = 10, baseline có AUC trung vị cao hơn trong 5 seed. Thứ ba, sweep cửa sổ trên
+INSECTS d = 10 cho AUC tăng từ 0,665 đến 0,716 khi cửa sổ tăng từ 256 đến 8.192 trong seed 0;
+chưa đủ để chọn kích thước tốt nhất hoặc khẳng định quy luật chung. Không đưa thời gian drift
+vào tổng kết này: báo cáo `drift.md` và `drift-after-bootstrap.md` ghi các mức thời gian khác nhau,
+dù AUC toàn luồng khớp; cần xác nhận nguồn run từ ZIP. Không suy ra nguyên nhân chênh lệch tốc độ
+khi implementation, điều kiện đo và protocol chưa được kiểm soát.
 
 Các giới hạn chung: nhóm chấm điểm trước khi học, còn code tác giả học trước rồi chấm cùng lô; baseline
 không phải bản PySAD; INSECTS chạy 5 seed so với 30 lần của bài báo; tệp Annthyroid có 7.200 dòng so với
-6.832 dòng trong bài báo. Lượt stationary truyền seed trực tiếp nên các seed liền nhau dùng chung 31/32
-cây. Vì dữ liệu hoặc protocol khác, không dùng chênh lệch phần trăm như thước đo tái tạo chính xác.
+6.832 dòng trong bài báo. Lượt stationary cuối là `stationary-f4`, ghi commit `54f1c48`,
+worktree sạch; cây thứ i dùng seed `32 × s + i`, không còn chồng lấn dải seed giữa các run.
+Vì dữ liệu hoặc protocol khác, không dùng chênh lệch phần trăm để khẳng định nhóm cải thiện
+so với paper. Nhãn `asdIFOR` trong các báo cáo lịch sử là baseline nhóm tự dựng, chưa phải PySAD.
 
 Baseline offline kiểm tra cài đặt (holdout ngẫu nhiên, seed 42: Annthyroid 0,821, Mammography 0,862; W&B
-`z86dyqji`, `judihdbh`) không đưa vào bảng vì khác protocol luồng. Toàn bộ code, kết quả và link run nằm
-trong repo nhóm; số liệu từng dòng lấy từ `results/stationary.md`, `results/drift-fixed-10.md`,
-`results/drift.md` và `experiments/exp3_window/README.md` [1].
+`z86dyqji`, `judihdbh`) không đưa vào bảng vì khác protocol luồng. Repo có code, bảng tổng hợp,
+hình và những link run đã tải; raw stationary, drift d = 33 và sweep chưa được bàn giao/upload đầy đủ.
+Không dùng link baseline offline hoặc d = 10 thay cho các lượt đó. Nguồn bảng: `results/stationary.md`,
+`results/drift-fixed-10.md`, `results/drift.md`, `experiments/exp3_window/README.md`.
+Các thí nghiệm đối chiếu riêng ngoài bộ số liệu nhóm đã chốt không đưa vào slide này.
 
 [1] F. Leveni, G. Weigert Cassales, B. Pfahringer, A. Bifet, and G. Boracchi, "Online Isolation
 Forest," in *Proc. 41st Int. Conf. Machine Learning*, PMLR, vol. 235, pp. 27288–27298, 2024.
