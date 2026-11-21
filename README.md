@@ -131,4 +131,15 @@ Lỗi W&B làm lệnh báo lỗi, nhưng file local vẫn được giữ. Chưa 
 | Annthyroid, sklearn offline | `scripts/run_baseline.py` | [run z86dyqji](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/z86dyqji) | ROC-AUC 0,821244; holdout ngẫu nhiên |
 | Mammography, sklearn offline | `scripts/run_baseline.py` | [run judihdbh](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/judihdbh) | ROC-AUC 0,862427; holdout ngẫu nhiên |
 
-Các baseline offline không dùng thay cho kết quả streaming của Phúc. Xem [danh mục W&B](docs/wandb-runs.md), [phân tích INSECTS](results/drift-fixed-10.md) và [slide Trân](slides/phase2-tran.md). Nhánh làm việc tích hợp dựa trên `feat/thi-learning-tests`: `feat/tran-insects`.
+Các baseline offline không dùng thay cho kết quả streaming của Phúc. Xem [danh mục W&B](docs/wandb-runs.md), [phân tích INSECTS](results/drift-fixed-10.md) và [slide Trân](slides/phase2-tran.md). Nhánh tích hợp hiện tại: `feature/tree_data`; `main` chưa có toàn bộ nội dung mới.
+
+## Tài liệu phần Trân và bàn giao kết quả
+
+- [Công thức OIF đang dùng](docs/cong-thuc-oif.md): độ sâu, scoring, seed và khác biệt paper/code.
+- [Nhận và upload kết quả đã chạy](docs/wandb.md): stationary-f4, drift33 và sweep; không chạy lại chỉ để upload.
+- [Trạng thái bàn giao Trân](docs/ban-giao-tran.md): phần đã soạn, việc chờ ZIP/deck và những điểm cần kiểm.
+- [Nháp slide và notes của Trân](slides/phase2-tran.md): 6.3, 8.1, 8.2 theo số liệu nhóm đã chốt.
+
+Stationary mới nhất của Phúc: OIF AUC trung vị 0,7468 trên Annthyroid, 0,8805
+trên Mammography, 30 seed; raw `stationary-f4` và W&B 0/120 theo
+[báo cáo](results/stationary.md). Đây là số nhóm hiện có, chưa phải xác nhận raw đã bàn giao.
