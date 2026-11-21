@@ -1,0 +1,92 @@
+{
+  "drift33/asdifor_seed0": {
+    "url": "https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/ba3651aea64fb983",
+    "sha256": "a5ffe20b9cf627bf4abd52c56935c8a7ded086621ed04c781044f8ff5eaad5b0",
+    "model": "asdifor",
+    "seed": 0,
+    "window_size": 2048,
+    "roc_auc": 0.7109954466957684,
+    "average_precision": 0.09605055144634517
+  },
+  "drift33/asdifor_seed1": {
+    "url": "https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/9d198f0722e04b0c",
+    "sha256": "d44d536fbcc0acded77f75e5c855cd10e798a69d1f418e1a723d581d89c62be2",
+    "model": "asdifor",
+    "seed": 1,
+    "window_size": 2048,
+    "roc_auc": 0.7176975086226699,
+    "average_precision": 0.09766665104000966
+  },
+  "drift33/asdifor_seed2": {
+    "url": "https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/de93871423a827bf",
+    "sha256": "315bab1eb532df0f7433efb1c7289672e77316c679cc1527f62963deefedd747",
+    "model": "asdifor",
+    "seed": 2,
+    "window_size": 2048,
+    "roc_auc": 0.7064582588997145,
+    "average_precision": 0.09468778696053692
+  },
+  "drift33/asdifor_seed3": {
+    "url": "https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/d64517fc26a3d85b",
+    "sha256": "85fb23f94a78026d4953706956c950470b886d3ee382b8bd8b73d502357d989e",
+    "model": "asdifor",
+    "seed": 3,
+    "window_size": 2048,
+    "roc_auc": 0.7178190022104181,
+    "average_precision": 0.09674168318875195
+  },
+  "drift33/asdifor_seed4": {
+    "url": "https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/f1b99640335ccd91",
+    "sha256": "cef257e96d34083a9841c966d620c4e782a8118d4d6c195c057aca5ff4202338",
+    "model": "asdifor",
+    "seed": 4,
+    "window_size": 2048,
+    "roc_auc": 0.7182824665335303,
+    "average_precision": 0.09996134796905001
+  },
+  "drift33/oif_seed0": {
+    "url": "https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/6b842d2492f2d875",
+    "sha256": "6e99ccfafae6c9562d41f360611cafa1664ea6d7cf81bb3507e0385dfd5489ae",
+    "model": "oif",
+    "seed": 0,
+    "window_size": 2048,
+    "roc_auc": 0.7441398023831736,
+    "average_precision": 0.107634756987557
+  },
+  "drift33/oif_seed1": {
+    "url": "https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/decedf711c97d05c",
+    "sha256": "57a0476c323a2fa693f27863bc8554b1042e7579a31098c33ce5c4a0a6359c3b",
+    "model": "oif",
+    "seed": 1,
+    "window_size": 2048,
+    "roc_auc": 0.696247725713326,
+    "average_precision": 0.09285666595591704
+  },
+  "drift33/oif_seed2": {
+    "url": "https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/a7eb5fc679012c45",
+    "sha256": "afe3ea7f311f97bfac1adf5e1eb0d9905c41f374feef2ce00db2c2b3bcdc1ead",
+    "model": "oif",
+    "seed": 2,
+    "window_size": 2048,
+    "roc_auc": 0.6451074443115803,
+    "average_precision": 0.07500731127286539
+  },
+  "drift33/oif_seed3": {
+    "url": "https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/b471705a259ba912",
+    "sha256": "8c04ff694113dd539fbc1384cf72c65d45ace4ee038874f9e7ab95b70069aa5c",
+    "model": "oif",
+    "seed": 3,
+    "window_size": 2048,
+    "roc_auc": 0.7058205031696902,
+    "average_precision": 0.10400053618001666
+  },
+  "drift33/oif_seed4": {
+    "url": "https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/d6f8d14a12828e5a",
+    "sha256": "44e5999142e885415a3a945ecd91aa983b5e7e04d4492a503b7d3fc58532441f",
+    "model": "oif",
+    "seed": 4,
+    "window_size": 2048,
+    "roc_auc": 0.7476938690876642,
+    "average_precision": 0.11760809770558076
+  }
+}

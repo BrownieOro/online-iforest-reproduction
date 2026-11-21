@@ -47,3 +47,8 @@ tốt nhất. Thời gian chạy cũng dao động theo mức cửa sổ và t�
 đủ ở [`results/window-sweep-10.csv`](../../results/window-sweep-10.csv). Tạo
 biểu đồ bằng `python experiments/exp3_window/plot.py`:
 [`figures/window-sweep-10.png`](../../figures/window-sweep-10.png).
+
+
+## Kết quả chạy lại và W&B (21/11)
+
+Đã có raw và4run W&B cho bản chạy lại sauF4;AUC/AP khớp bảng cũ. Xem [báo cáo mới](../../results/window-sweep-f4-10.md),[manifest](../../results/window-wandb-links.json),[nội dung slide](../../slides/exp3-window.md). Runner riêng: experiments/exp3_window/run.py. Thời gian mới không dùng so sánh tốc độ vì job chạy đồng thời. Các đoạn “chưa có URL” ở trên mô tả lượt lịch sử,không phải trạng thái lượt mới.

@@ -1,5 +1,7 @@
 # INSECTS drift sau cập nhật khởi tạo node con
 
+> Cập nhật21/11: ZIP drift33 sauF4 đã bàn giao và upload10run. Dùng [báo cáo/nguồn run mới](drift33-f4.md) và [manifest](drift33-wandb-links.json) cho trạng thái W&B và thời gian lượt mới; nội dung bên dưới giữ lịch sử lượt trước.
+
 ## Thiết lập
 
 Đã chạy đủ 212.514 dòng theo thứ tự gốc, 33 đặc trưng, 5 seed (0–4), 32 cây,

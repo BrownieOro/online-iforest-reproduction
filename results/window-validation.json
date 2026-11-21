@@ -1,0 +1,6 @@
+{
+  "verified_runs": 4,
+  "metrics_recomputed": true,
+  "matches_historical_auc_ap": true,
+  "parallel_timing_not_comparable": true
+}

@@ -1,5 +1,7 @@
 # Kết quả thí nghiệm concept drift trên INSECTS
 
+> Cập nhật21/11: ZIP drift33 sauF4 đã bàn giao và upload10run. Dùng [báo cáo/nguồn run mới](drift33-f4.md) và [manifest](drift33-wandb-links.json) cho trạng thái W&B và thời gian lượt mới; nội dung bên dưới giữ lịch sử lượt trước.
+
 **Trạng thái:** d = 33 chạy 5 seed (0–4) tại commit `fb35956` (đã có bản sửa F1 `6ac25e3`); kết quả thô trong `results/raw/drift-v2/` (Git bỏ qua), chưa tải lên W&B. d = 10 lấy từ [`drift-fixed-10.md`](drift-fixed-10.md) (5 seed, cùng `run.py`, sau sửa F1), mỗi run có link W&B. Bảng đầy đủ ở [`drift-by-segment.csv`](drift-by-segment.csv). Số liệu sinh bởi [`experiments/exp2_drift/plot_summary.py`](../experiments/exp2_drift/plot_summary.py).
 
 Đối chiếu: ROC-AUC toàn luồng của 10 lần chạy d = 33 khớp [`drift-after-bootstrap.csv`](drift-after-bootstrap.csv), sai lệch lớn nhất 0.0e+00.
