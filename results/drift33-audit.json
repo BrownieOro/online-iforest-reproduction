@@ -1,0 +1,142 @@
+[
+  {
+    "run": "asdifor_seed0",
+    "roc_auc": 0.7109954466957684,
+    "average_precision": 0.09605055144634517,
+    "total_seconds": 12.068437300273217,
+    "commit": "0ea32145ff5cd8b023e1883d86f1a0405b56cb39",
+    "params": {
+      "implementation": "group SlidingIForest over sklearn.ensemble.IsolationForest",
+      "n_estimators": 32,
+      "window_size": 2048,
+      "max_samples": 256,
+      "seed": 0
+    }
+  },
+  {
+    "run": "asdifor_seed1",
+    "roc_auc": 0.7176975086226699,
+    "average_precision": 0.09766665104000966,
+    "total_seconds": 12.624118300445843,
+    "commit": "0ea32145ff5cd8b023e1883d86f1a0405b56cb39",
+    "params": {
+      "implementation": "group SlidingIForest over sklearn.ensemble.IsolationForest",
+      "n_estimators": 32,
+      "window_size": 2048,
+      "max_samples": 256,
+      "seed": 1
+    }
+  },
+  {
+    "run": "asdifor_seed2",
+    "roc_auc": 0.7064582588997145,
+    "average_precision": 0.09468778696053692,
+    "total_seconds": 11.79857659933623,
+    "commit": "0ea32145ff5cd8b023e1883d86f1a0405b56cb39",
+    "params": {
+      "implementation": "group SlidingIForest over sklearn.ensemble.IsolationForest",
+      "n_estimators": 32,
+      "window_size": 2048,
+      "max_samples": 256,
+      "seed": 2
+    }
+  },
+  {
+    "run": "asdifor_seed3",
+    "roc_auc": 0.7178190022104181,
+    "average_precision": 0.09674168318875195,
+    "total_seconds": 10.970508199970936,
+    "commit": "0ea32145ff5cd8b023e1883d86f1a0405b56cb39",
+    "params": {
+      "implementation": "group SlidingIForest over sklearn.ensemble.IsolationForest",
+      "n_estimators": 32,
+      "window_size": 2048,
+      "max_samples": 256,
+      "seed": 3
+    }
+  },
+  {
+    "run": "asdifor_seed4",
+    "roc_auc": 0.7182824665335303,
+    "average_precision": 0.09996134796905001,
+    "total_seconds": 11.363886599923717,
+    "commit": "0ea32145ff5cd8b023e1883d86f1a0405b56cb39",
+    "params": {
+      "implementation": "group SlidingIForest over sklearn.ensemble.IsolationForest",
+      "n_estimators": 32,
+      "window_size": 2048,
+      "max_samples": 256,
+      "seed": 4
+    }
+  },
+  {
+    "run": "oif_seed0",
+    "roc_auc": 0.7441398023831736,
+    "average_precision": 0.107634756987557,
+    "total_seconds": 190.33657690006658,
+    "commit": "0ea32145ff5cd8b023e1883d86f1a0405b56cb39",
+    "params": {
+      "n_trees": 32,
+      "window_size": 2048,
+      "eta": 32.0,
+      "forest_seed": 0,
+      "tree_seeds": "forest_seed * 32 + i, i < 32"
+    }
+  },
+  {
+    "run": "oif_seed1",
+    "roc_auc": 0.696247725713326,
+    "average_precision": 0.09285666595591704,
+    "total_seconds": 190.18840210040798,
+    "commit": "0ea32145ff5cd8b023e1883d86f1a0405b56cb39",
+    "params": {
+      "n_trees": 32,
+      "window_size": 2048,
+      "eta": 32.0,
+      "forest_seed": 1,
+      "tree_seeds": "forest_seed * 32 + i, i < 32"
+    }
+  },
+  {
+    "run": "oif_seed2",
+    "roc_auc": 0.6451074443115803,
+    "average_precision": 0.07500731127286539,
+    "total_seconds": 189.26267079965328,
+    "commit": "0ea32145ff5cd8b023e1883d86f1a0405b56cb39",
+    "params": {
+      "n_trees": 32,
+      "window_size": 2048,
+      "eta": 32.0,
+      "forest_seed": 2,
+      "tree_seeds": "forest_seed * 32 + i, i < 32"
+    }
+  },
+  {
+    "run": "oif_seed3",
+    "roc_auc": 0.7058205031696902,
+    "average_precision": 0.10400053618001666,
+    "total_seconds": 180.56865300025675,
+    "commit": "0ea32145ff5cd8b023e1883d86f1a0405b56cb39",
+    "params": {
+      "n_trees": 32,
+      "window_size": 2048,
+      "eta": 32.0,
+      "forest_seed": 3,
+      "tree_seeds": "forest_seed * 32 + i, i < 32"
+    }
+  },
+  {
+    "run": "oif_seed4",
+    "roc_auc": 0.7476938690876642,
+    "average_precision": 0.11760809770558076,
+    "total_seconds": 187.5630856003554,
+    "commit": "0ea32145ff5cd8b023e1883d86f1a0405b56cb39",
+    "params": {
+      "n_trees": 32,
+      "window_size": 2048,
+      "eta": 32.0,
+      "forest_seed": 4,
+      "tree_seeds": "forest_seed * 32 + i, i < 32"
+    }
+  }
+]

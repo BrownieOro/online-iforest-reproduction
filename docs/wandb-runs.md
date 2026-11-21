@@ -26,3 +26,9 @@ Các run dùng 10 đặc trưng, 5 seed, 32 cây, cửa sổ 2048; từng run c�
 - [oif_seed2](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/bkkazl0o)
 - [oif_seed3](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/zrvo8y72)
 - [oif_seed4](https://forge.coreweave.com/wandb/24122055-university-of-science-viet-nam-national-univer/intro-ml-oif/runs/gq0qkj76)
+
+
+## Bổ sung ngày21/11 — drift33 F4 và thí nghiệm3
+
+- [Drift33:10run đã kiểm và upload](../results/drift33-f4.md),[manifest](../results/drift33-wandb-links.json).
+- [Sweep cửa sổ:4run đã kiểm và upload](../results/window-sweep-f4-10.md),[manifest](../results/window-wandb-links.json).
